@@ -275,7 +275,7 @@ namespace XLua
         void initCSharpCallLua()
         {
             delegate_birdge_type = typeof(DelegateBridge);
-#if UNITY_EDITOR || XLUA_GENERAL
+#if (UNITY_EDITOR || XLUA_GENERAL) && !NET_STANDARD_2_0
             if (!DelegateBridge.Gen_Flag)
             {
                 List<Type> cs_call_lua = new List<Type>();
@@ -327,7 +327,7 @@ namespace XLua
 #endif
         }
 
-#if UNITY_EDITOR || XLUA_GENERAL
+#if (UNITY_EDITOR || XLUA_GENERAL) && !NET_STANDARD_2_0
         CodeEmit ce = new CodeEmit();
 #endif
         
@@ -456,7 +456,7 @@ namespace XLua
 
             if (!interfaceBridgeCreators.TryGetValue(interfaceType, out creator))
             {
-#if UNITY_EDITOR || XLUA_GENERAL
+#if (UNITY_EDITOR || XLUA_GENERAL) && !NET_STANDARD_2_0
                 var bridgeType = ce.EmitInterfaceImpl(interfaceType);
                 creator = (int reference, LuaEnv luaenv) =>
                 {

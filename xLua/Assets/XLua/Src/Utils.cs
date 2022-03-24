@@ -97,7 +97,7 @@ namespace XLua
         public static IEnumerable<Type> GetAllTypes(bool exclude_generic_definition = true)
         {
             return from assembly in AppDomain.CurrentDomain.GetAssemblies()
-#if UNITY_EDITOR || XLUA_GENERAL
+#if (UNITY_EDITOR || XLUA_GENERAL) && !NET_STANDARD_2_0
                                           where !(assembly.ManifestModule is System.Reflection.Emit.ModuleBuilder)
 #endif
                                           from type in assembly.GetTypes()
