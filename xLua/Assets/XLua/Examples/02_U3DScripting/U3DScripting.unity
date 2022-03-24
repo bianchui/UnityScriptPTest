@@ -228,7 +228,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   luaScript: {fileID: 4900000, guid: 7cfed86298c2da543b693ffd8436367a, type: 3}
-  injections: []
+  injections:
+  - name: lightObject
+    value: {fileID: 1609897899}
 --- !u!1 &1318428841
 GameObject:
   m_ObjectHideFlags: 0
