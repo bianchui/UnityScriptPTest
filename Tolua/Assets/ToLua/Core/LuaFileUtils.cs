@@ -26,18 +26,24 @@ using System.IO;
 using System.Collections;
 using System.Text;
 
-namespace LuaInterface {
-    public class LuaFileUtils {
-        public static LuaFileUtils Instance {
-            get {
-                if (instance == null) {
+namespace LuaInterface
+{
+    public class LuaFileUtils
+    {
+        public static LuaFileUtils Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
                     instance = new LuaFileUtils();
                 }
 
                 return instance;
             }
 
-            protected set {
+            protected set
+            {
                 instance = value;
             }
         }
@@ -49,16 +55,20 @@ namespace LuaInterface {
 
         protected static LuaFileUtils instance = null;
 
-        public LuaFileUtils() {
+        public LuaFileUtils()
+        {
             instance = this;
         }
 
-        public virtual void Dispose() {
-            if (instance != null) {
+        public virtual void Dispose()
+        {
+            if (instance != null)
+            {
                 instance = null;
                 searchPaths.Clear();
 
-                foreach (KeyValuePair<string, AssetBundle> iter in zipMap) {
+                foreach (KeyValuePair<string, AssetBundle> iter in zipMap)
+                {
                     iter.Value.Unload(true);
                 }
 
@@ -67,26 +77,33 @@ namespace LuaInterface {
         }
 
         //格式: 路径/?.lua
-        public bool AddSearchPath(string path, bool front = false) {
+        public bool AddSearchPath(string path, bool front = false)
+        {
             int index = searchPaths.IndexOf(path);
 
-            if (index >= 0) {
+            if (index >= 0)
+            {
                 return false;
             }
 
-            if (front) {
+            if (front)
+            {
                 searchPaths.Insert(0, path);
-            } else {
+            }
+            else
+            {
                 searchPaths.Add(path);
             }
 
             return true;
         }
 
-        public bool RemoveSearchPath(string path) {
+        public bool RemoveSearchPath(string path)
+        {
             int index = searchPaths.IndexOf(path);
 
-            if (index >= 0) {
+            if (index >= 0)
+            {
                 searchPaths.RemoveAt(index);
                 return true;
             }
@@ -94,45 +111,41 @@ namespace LuaInterface {
             return false;
         }
 
-        public string GetPackagePath() {
-            StringBuilder sb = StringBuilderCache.Acquire();
-            sb.Append(";");
-
-            for (int i = 0; i < searchPaths.Count; i++) {
-                sb.Append(searchPaths[i]);
-                sb.Append(';');
-            }
-
-            return StringBuilderCache.GetStringAndRelease(sb);
-        }
-
-        public void AddSearchBundle(string name, AssetBundle bundle) {
+        public void AddSearchBundle(string name, AssetBundle bundle)
+        {
             zipMap[name] = bundle;
         }
 
-        public string FindFile(string fileName) {
-            if (fileName == string.Empty) {
+        public string FindFile(string fileName)
+        {
+            if (fileName == string.Empty)
+            {
                 return string.Empty;
             }
 
-            if (Path.IsPathRooted(fileName)) {
-                if (!fileName.EndsWith(".lua")) {
+            if (Path.IsPathRooted(fileName))
+            {
+                if (!fileName.EndsWith(".lua"))
+                {
                     fileName += ".lua";
                 }
 
                 return fileName;
             }
 
-            if (fileName.EndsWith(".lua")) {
+            if (fileName.EndsWith(".lua"))
+            {
                 fileName = fileName.Substring(0, fileName.Length - 4);
             }
 
             string fullPath = null;
 
-            for (int i = 0; i < searchPaths.Count; i++) {
+            for (int i = 0; i < searchPaths.Count; i++)
+            {
                 fullPath = searchPaths[i].Replace("?", fileName);
 
-                if (File.Exists(fullPath)) {
+                if (File.Exists(fullPath))
+                {
                     return fullPath;
                 }
             }
@@ -140,12 +153,15 @@ namespace LuaInterface {
             return null;
         }
 
-        public virtual byte[] ReadFile(string fileName) {
-            if (!beZip) {
+        public virtual byte[] ReadFile(string fileName)
+        {
+            if (!beZip)
+            {
                 string path = FindFile(fileName);
                 byte[] str = null;
 
-                if (!string.IsNullOrEmpty(path) && File.Exists(path)) {
+                if (!string.IsNullOrEmpty(path) && File.Exists(path))
+                {
 #if !UNITY_WEBPLAYER
                     str = File.ReadAllBytes(path);
 #else
@@ -154,79 +170,97 @@ namespace LuaInterface {
                 }
 
                 return str;
-            } else {
+            }
+            else
+            {
                 return ReadZipFile(fileName);
             }
         }
 
-        public virtual string FindFileError(string fileName) {
-            if (Path.IsPathRooted(fileName)) {
+        public virtual string FindFileError(string fileName)
+        {
+            if (Path.IsPathRooted(fileName))
+            {
                 return fileName;
             }
 
-            StringBuilder sb = StringBuilderCache.Acquire();
-
-            if (fileName.EndsWith(".lua")) {
+            if (fileName.EndsWith(".lua"))
+            {
                 fileName = fileName.Substring(0, fileName.Length - 4);
             }
 
-            for (int i = 0; i < searchPaths.Count; i++) {
-                sb.AppendFormat("\n\tno file '{0}'", searchPaths[i]);
-            }
+            using (CString.Block())
+            {
+                CString sb = CString.Alloc(512);
 
-            sb = sb.Replace("?", fileName);
-
-            if (beZip) {
-                int pos = fileName.LastIndexOf('/');
-                string bundle = "";
-
-                if (pos > 0) {
-                    bundle = fileName.Substring(0, pos);
-                    bundle = bundle.Replace('/', '_');
-                    bundle = string.Format("lua_{0}.unity3d", bundle);
-                } else {
-                    bundle = "lua.unity3d";
+                for (int i = 0; i < searchPaths.Count; i++)
+                {
+                    sb.Append("\n\tno file '").Append(searchPaths[i]).Append('\'');
                 }
 
-                sb.AppendFormat("\n\tno file '{0}' in {1}", fileName, bundle);
-            }
+                sb = sb.Replace("?", fileName);
 
-            return StringBuilderCache.GetStringAndRelease(sb);
+                if (beZip)
+                {
+                    int pos = fileName.LastIndexOf('/');
+
+                    if (pos > 0)
+                    {
+                        int tmp = pos + 1;
+                        sb.Append("\n\tno file '").Append(fileName, tmp, fileName.Length - tmp).Append(".lua' in ").Append("lua_");
+                        tmp = sb.Length;
+                        sb.Append(fileName, 0, pos).Replace('/', '_', tmp, pos).Append(".unity3d");
+                    }
+                    else
+                    {
+                        sb.Append("\n\tno file '").Append(fileName).Append(".lua' in ").Append("lua.unity3d");
+                    }
+                }
+
+                return sb.ToString();
+            }
         }
 
-        byte[] ReadZipFile(string fileName) {
+        byte[] ReadZipFile(string fileName)
+        {
             AssetBundle zipFile = null;
             byte[] buffer = null;
             string zipName = null;
-            StringBuilder sb = StringBuilderCache.Acquire();
-            sb.Append("lua");
-            int pos = fileName.LastIndexOf('/');
 
-            if (pos > 0) {
-                sb.Append("_");
-                sb.Append(fileName.Substring(0, pos).ToLower());        //shit, unity5 assetbund'name must lower
-                sb.Replace('/', '_');
-                fileName = fileName.Substring(pos + 1);
-            }
+            using (CString.Block())
+            {
+                CString sb = CString.Alloc(256);
+                sb.Append("lua");
+                int pos = fileName.LastIndexOf('/');
 
-            if (!fileName.EndsWith(".lua")) {
-                fileName += ".lua";
-            }
+                if (pos > 0)
+                {
+                    sb.Append("_");
+                    sb.Append(fileName, 0, pos).ToLower().Replace('/', '_');
+                    fileName = fileName.Substring(pos + 1);
+                }
 
-#if UNITY_5_OR_NEWER
-            fileName += ".bytes";
+                if (!fileName.EndsWith(".lua"))
+                {
+                    fileName += ".lua";
+                }
+
+#if UNITY_5 || UNITY_5_3_OR_NEWER
+                fileName += ".bytes";
 #endif
-            zipName = StringBuilderCache.GetStringAndRelease(sb);
-            zipMap.TryGetValue(zipName, out zipFile);
+                zipName = sb.ToString();
+                zipMap.TryGetValue(zipName, out zipFile);
+            }
 
-            if (zipFile != null) {
-#if UNITY_5_OR_NEWER
-                TextAsset luaCode = zipFile.LoadAsset<TextAsset>(fileName);
+            if (zipFile != null)
+            {
+#if UNITY_4_6 || UNITY_4_7
+                TextAsset luaCode = zipFile.Load(fileName, typeof(TextAsset)) as TextAsset;
 #else
-                TextAsset luaCode = zipFile.LoadAsset(fileName, typeof(TextAsset)) as TextAsset;
+                TextAsset luaCode = zipFile.LoadAsset<TextAsset>(fileName);
 #endif
-
-                if (luaCode != null) {
+                if (luaCode != null)
+                {
                     buffer = luaCode.bytes;
                     Resources.UnloadAsset(luaCode);
                 }
@@ -235,7 +269,8 @@ namespace LuaInterface {
             return buffer;
         }
 
-        public static string GetOSDir() {
+        public static string GetOSDir()
+        {
             return LuaConst.osDir;
         }
     }
