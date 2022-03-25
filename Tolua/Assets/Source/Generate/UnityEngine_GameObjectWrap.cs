@@ -14,15 +14,16 @@ public class UnityEngine_GameObjectWrap
 		L.RegFunction("GetComponents", GetComponents);
 		L.RegFunction("GetComponentsInChildren", GetComponentsInChildren);
 		L.RegFunction("GetComponentsInParent", GetComponentsInParent);
+		L.RegFunction("TryGetComponent", TryGetComponent);
+		L.RegFunction("FindWithTag", FindWithTag);
 		L.RegFunction("SetActive", SetActive);
 		L.RegFunction("CompareTag", CompareTag);
 		L.RegFunction("FindGameObjectWithTag", FindGameObjectWithTag);
-		L.RegFunction("FindWithTag", FindWithTag);
 		L.RegFunction("FindGameObjectsWithTag", FindGameObjectsWithTag);
-		L.RegFunction("SendMessageUpwards", SendMessageUpwards);
-		L.RegFunction("BroadcastMessage", BroadcastMessage);
-		L.RegFunction("AddComponent", AddComponent);
 		L.RegFunction("Find", Find);
+		L.RegFunction("AddComponent", AddComponent);
+		L.RegFunction("BroadcastMessage", BroadcastMessage);
+		L.RegFunction("SendMessageUpwards", SendMessageUpwards);
 		L.RegFunction("SendMessage", SendMessage);
 		L.RegFunction("New", _CreateUnityEngine_GameObject);
 		L.RegFunction("__eq", op_Equality);
@@ -34,6 +35,7 @@ public class UnityEngine_GameObjectWrap
 		L.RegVar("isStatic", get_isStatic, set_isStatic);
 		L.RegVar("tag", get_tag, set_tag);
 		L.RegVar("scene", get_scene, null);
+		L.RegVar("sceneCullingMask", get_sceneCullingMask, null);
 		L.RegVar("gameObject", get_gameObject, null);
 		L.EndClass();
 	}
@@ -48,22 +50,22 @@ public class UnityEngine_GameObjectWrap
 			if (count == 0)
 			{
 				UnityEngine.GameObject obj = new UnityEngine.GameObject();
-				ToLua.Push(L, obj);
+				ToLua.PushSealed(L, obj);
 				return 1;
 			}
-			else if (count == 1 && TypeChecker.CheckTypes(L, 1, typeof(string)))
+			else if (count == 1 && TypeChecker.CheckTypes<string>(L, 1))
 			{
-				string arg0 = ToLua.CheckString(L, 1);
+				string arg0 = ToLua.ToString(L, 1);
 				UnityEngine.GameObject obj = new UnityEngine.GameObject(arg0);
-				ToLua.Push(L, obj);
+				ToLua.PushSealed(L, obj);
 				return 1;
 			}
-			else if (TypeChecker.CheckTypes(L, 1, typeof(string)) && TypeChecker.CheckParamsType(L, typeof(System.Type), 2, count - 1))
+			else if (TypeChecker.CheckTypes<string>(L, 1) && TypeChecker.CheckParamsType<System.Type>(L, 2, count - 1))
 			{
-				string arg0 = ToLua.CheckString(L, 1);
-				System.Type[] arg1 = ToLua.CheckParamsObject<System.Type>(L, 2, count - 1);
+				string arg0 = ToLua.ToString(L, 1);
+				System.Type[] arg1 = ToLua.ToParamsObject<System.Type>(L, 2, count - 1);
 				UnityEngine.GameObject obj = new UnityEngine.GameObject(arg0, arg1);
-				ToLua.Push(L, obj);
+				ToLua.PushSealed(L, obj);
 				return 1;
 			}
 			else
@@ -71,7 +73,7 @@ public class UnityEngine_GameObjectWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to ctor method: UnityEngine.GameObject.New");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -85,10 +87,10 @@ public class UnityEngine_GameObjectWrap
 			ToLua.CheckArgsCount(L, 1);
 			UnityEngine.PrimitiveType arg0 = (UnityEngine.PrimitiveType)ToLua.CheckObject(L, 1, typeof(UnityEngine.PrimitiveType));
 			UnityEngine.GameObject o = UnityEngine.GameObject.CreatePrimitive(arg0);
-			ToLua.Push(L, o);
+			ToLua.PushSealed(L, o);
 			return 1;
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -101,18 +103,18 @@ public class UnityEngine_GameObjectWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(string)))
+			if (count == 2 && TypeChecker.CheckTypes<System.Type>(L, 2))
 			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				System.Type arg0 = (System.Type)ToLua.ToObject(L, 2);
 				UnityEngine.Component o = obj.GetComponent(arg0);
 				ToLua.Push(L, o);
 				return 1;
 			}
-			else if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(System.Type)))
+			else if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
 			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				System.Type arg0 = (System.Type)ToLua.ToObject(L, 2);
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				string arg0 = ToLua.ToString(L, 2);
 				UnityEngine.Component o = obj.GetComponent(arg0);
 				ToLua.Push(L, o);
 				return 1;
@@ -122,7 +124,7 @@ public class UnityEngine_GameObjectWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.GameObject.GetComponent");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -135,19 +137,19 @@ public class UnityEngine_GameObjectWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(System.Type)))
+			if (count == 2)
 			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				System.Type arg0 = (System.Type)ToLua.ToObject(L, 2);
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				System.Type arg0 = ToLua.CheckMonoType(L, 2);
 				UnityEngine.Component o = obj.GetComponentInChildren(arg0);
 				ToLua.Push(L, o);
 				return 1;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(System.Type), typeof(bool)))
+			else if (count == 3)
 			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				System.Type arg0 = (System.Type)ToLua.ToObject(L, 2);
-				bool arg1 = LuaDLL.lua_toboolean(L, 3);
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				System.Type arg0 = ToLua.CheckMonoType(L, 2);
+				bool arg1 = LuaDLL.luaL_checkboolean(L, 3);
 				UnityEngine.Component o = obj.GetComponentInChildren(arg0, arg1);
 				ToLua.Push(L, o);
 				return 1;
@@ -157,7 +159,7 @@ public class UnityEngine_GameObjectWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.GameObject.GetComponentInChildren");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -170,12 +172,12 @@ public class UnityEngine_GameObjectWrap
 		{
 			ToLua.CheckArgsCount(L, 2);
 			UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
-			System.Type arg0 = (System.Type)ToLua.CheckObject(L, 2, typeof(System.Type));
+			System.Type arg0 = ToLua.CheckMonoType(L, 2);
 			UnityEngine.Component o = obj.GetComponentInParent(arg0);
 			ToLua.Push(L, o);
 			return 1;
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -188,19 +190,19 @@ public class UnityEngine_GameObjectWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(System.Type)))
+			if (count == 2)
 			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				System.Type arg0 = (System.Type)ToLua.ToObject(L, 2);
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				System.Type arg0 = ToLua.CheckMonoType(L, 2);
 				UnityEngine.Component[] o = obj.GetComponents(arg0);
 				ToLua.Push(L, o);
 				return 1;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(System.Type), typeof(System.Collections.Generic.List<UnityEngine.Component>)))
+			else if (count == 3)
 			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				System.Type arg0 = (System.Type)ToLua.ToObject(L, 2);
-				System.Collections.Generic.List<UnityEngine.Component> arg1 = (System.Collections.Generic.List<UnityEngine.Component>)ToLua.ToObject(L, 3);
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				System.Type arg0 = ToLua.CheckMonoType(L, 2);
+				System.Collections.Generic.List<UnityEngine.Component> arg1 = (System.Collections.Generic.List<UnityEngine.Component>)ToLua.CheckObject(L, 3, typeof(System.Collections.Generic.List<UnityEngine.Component>));
 				obj.GetComponents(arg0, arg1);
 				return 0;
 			}
@@ -209,7 +211,7 @@ public class UnityEngine_GameObjectWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.GameObject.GetComponents");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -222,19 +224,19 @@ public class UnityEngine_GameObjectWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(System.Type)))
+			if (count == 2)
 			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				System.Type arg0 = (System.Type)ToLua.ToObject(L, 2);
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				System.Type arg0 = ToLua.CheckMonoType(L, 2);
 				UnityEngine.Component[] o = obj.GetComponentsInChildren(arg0);
 				ToLua.Push(L, o);
 				return 1;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(System.Type), typeof(bool)))
+			else if (count == 3)
 			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				System.Type arg0 = (System.Type)ToLua.ToObject(L, 2);
-				bool arg1 = LuaDLL.lua_toboolean(L, 3);
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				System.Type arg0 = ToLua.CheckMonoType(L, 2);
+				bool arg1 = LuaDLL.luaL_checkboolean(L, 3);
 				UnityEngine.Component[] o = obj.GetComponentsInChildren(arg0, arg1);
 				ToLua.Push(L, o);
 				return 1;
@@ -244,7 +246,7 @@ public class UnityEngine_GameObjectWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.GameObject.GetComponentsInChildren");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -257,19 +259,19 @@ public class UnityEngine_GameObjectWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(System.Type)))
+			if (count == 2)
 			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				System.Type arg0 = (System.Type)ToLua.ToObject(L, 2);
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				System.Type arg0 = ToLua.CheckMonoType(L, 2);
 				UnityEngine.Component[] o = obj.GetComponentsInParent(arg0);
 				ToLua.Push(L, o);
 				return 1;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(System.Type), typeof(bool)))
+			else if (count == 3)
 			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				System.Type arg0 = (System.Type)ToLua.ToObject(L, 2);
-				bool arg1 = LuaDLL.lua_toboolean(L, 3);
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				System.Type arg0 = ToLua.CheckMonoType(L, 2);
+				bool arg1 = LuaDLL.luaL_checkboolean(L, 3);
 				UnityEngine.Component[] o = obj.GetComponentsInParent(arg0, arg1);
 				ToLua.Push(L, o);
 				return 1;
@@ -279,7 +281,44 @@ public class UnityEngine_GameObjectWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.GameObject.GetComponentsInParent");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int TryGetComponent(IntPtr L)
+	{
+		try
+		{
+			ToLua.CheckArgsCount(L, 3);
+			UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+			System.Type arg0 = ToLua.CheckMonoType(L, 2);
+			UnityEngine.Component arg1 = null;
+			bool o = obj.TryGetComponent(arg0, out arg1);
+			LuaDLL.lua_pushboolean(L, o);
+			ToLua.Push(L, arg1);
+			return 2;
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int FindWithTag(IntPtr L)
+	{
+		try
+		{
+			ToLua.CheckArgsCount(L, 1);
+			string arg0 = ToLua.CheckString(L, 1);
+			UnityEngine.GameObject o = UnityEngine.GameObject.FindWithTag(arg0);
+			ToLua.PushSealed(L, o);
+			return 1;
+		}
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -296,7 +335,7 @@ public class UnityEngine_GameObjectWrap
 			obj.SetActive(arg0);
 			return 0;
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -314,7 +353,7 @@ public class UnityEngine_GameObjectWrap
 			LuaDLL.lua_pushboolean(L, o);
 			return 1;
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -328,27 +367,10 @@ public class UnityEngine_GameObjectWrap
 			ToLua.CheckArgsCount(L, 1);
 			string arg0 = ToLua.CheckString(L, 1);
 			UnityEngine.GameObject o = UnityEngine.GameObject.FindGameObjectWithTag(arg0);
-			ToLua.Push(L, o);
+			ToLua.PushSealed(L, o);
 			return 1;
 		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int FindWithTag(IntPtr L)
-	{
-		try
-		{
-			ToLua.CheckArgsCount(L, 1);
-			string arg0 = ToLua.CheckString(L, 1);
-			UnityEngine.GameObject o = UnityEngine.GameObject.FindWithTag(arg0);
-			ToLua.Push(L, o);
-			return 1;
-		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -365,125 +387,7 @@ public class UnityEngine_GameObjectWrap
 			ToLua.Push(L, o);
 			return 1;
 		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int SendMessageUpwards(IntPtr L)
-	{
-		try
-		{
-			int count = LuaDLL.lua_gettop(L);
-
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(string)))
-			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				obj.SendMessageUpwards(arg0);
-				return 0;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(string), typeof(UnityEngine.SendMessageOptions)))
-			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				UnityEngine.SendMessageOptions arg1 = (UnityEngine.SendMessageOptions)ToLua.ToObject(L, 3);
-				obj.SendMessageUpwards(arg0, arg1);
-				return 0;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(string), typeof(object)))
-			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				object arg1 = ToLua.ToVarObject(L, 3);
-				obj.SendMessageUpwards(arg0, arg1);
-				return 0;
-			}
-			else if (count == 4 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(string), typeof(object), typeof(UnityEngine.SendMessageOptions)))
-			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				object arg1 = ToLua.ToVarObject(L, 3);
-				UnityEngine.SendMessageOptions arg2 = (UnityEngine.SendMessageOptions)ToLua.ToObject(L, 4);
-				obj.SendMessageUpwards(arg0, arg1, arg2);
-				return 0;
-			}
-			else
-			{
-				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.GameObject.SendMessageUpwards");
-			}
-		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int BroadcastMessage(IntPtr L)
-	{
-		try
-		{
-			int count = LuaDLL.lua_gettop(L);
-
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(string)))
-			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				obj.BroadcastMessage(arg0);
-				return 0;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(string), typeof(UnityEngine.SendMessageOptions)))
-			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				UnityEngine.SendMessageOptions arg1 = (UnityEngine.SendMessageOptions)ToLua.ToObject(L, 3);
-				obj.BroadcastMessage(arg0, arg1);
-				return 0;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(string), typeof(object)))
-			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				object arg1 = ToLua.ToVarObject(L, 3);
-				obj.BroadcastMessage(arg0, arg1);
-				return 0;
-			}
-			else if (count == 4 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(string), typeof(object), typeof(UnityEngine.SendMessageOptions)))
-			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				object arg1 = ToLua.ToVarObject(L, 3);
-				UnityEngine.SendMessageOptions arg2 = (UnityEngine.SendMessageOptions)ToLua.ToObject(L, 4);
-				obj.BroadcastMessage(arg0, arg1, arg2);
-				return 0;
-			}
-			else
-			{
-				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.GameObject.BroadcastMessage");
-			}
-		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int AddComponent(IntPtr L)
-	{
-		try
-		{
-			ToLua.CheckArgsCount(L, 2);
-			UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
-			System.Type arg0 = (System.Type)ToLua.CheckObject(L, 2, typeof(System.Type));
-			UnityEngine.Component o = obj.AddComponent(arg0);
-			ToLua.Push(L, o);
-			return 1;
-		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -497,11 +401,241 @@ public class UnityEngine_GameObjectWrap
 			ToLua.CheckArgsCount(L, 1);
 			string arg0 = ToLua.CheckString(L, 1);
 			UnityEngine.GameObject o = UnityEngine.GameObject.Find(arg0);
-			ToLua.Push(L, o);
+			ToLua.PushSealed(L, o);
 			return 1;
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int AddComponent(IntPtr L)
+	{
+		IntPtr L0 = LuaException.L;
+
+        try
+        {
+            ++LuaException.InstantiateCount;
+            LuaException.L = L;
+            ToLua.CheckArgsCount(L, 2);
+			UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+			System.Type arg0 = ToLua.CheckMonoType(L, 2);
+			UnityEngine.Component o = obj.AddComponent(arg0);
+
+            if (LuaDLL.lua_toboolean(L, LuaDLL.lua_upvalueindex(1)))
+            {
+                string error = LuaDLL.lua_tostring(L, -1);
+                LuaDLL.lua_pop(L, 1);
+                throw new LuaException(error, LuaException.GetLastError());
+            }
+
+            ToLua.Push(L, o);
+            LuaException.L = L0;
+            --LuaException.InstantiateCount;
+            return 1;
+		}
+		catch (Exception e)
+		{
+            LuaException.L = L0;
+            --LuaException.InstantiateCount;
+            return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int BroadcastMessage(IntPtr L)
+	{
+		IntPtr L0 = LuaException.L;
+    
+		try
+		{
+            ++LuaException.SendMsgCount;
+            LuaException.L = L;
+            int count = LuaDLL.lua_gettop(L);
+
+			if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
+			{
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				string arg0 = ToLua.ToString(L, 2);
+				obj.BroadcastMessage(arg0);                
+
+                if (LuaDLL.lua_toboolean(L, LuaDLL.lua_upvalueindex(1)))
+                {
+                    string error = LuaDLL.lua_tostring(L, -1);
+                    LuaDLL.lua_pop(L, 1);
+                    throw new LuaException(error, LuaException.GetLastError());
+                }
+
+				--LuaException.SendMsgCount;
+                LuaException.L = L0;
+                return 0;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<string, UnityEngine.SendMessageOptions>(L, 2))
+			{
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				string arg0 = ToLua.ToString(L, 2);
+				UnityEngine.SendMessageOptions arg1 = (UnityEngine.SendMessageOptions)ToLua.ToObject(L, 3);
+				obj.BroadcastMessage(arg0, arg1);                
+
+                if (LuaDLL.lua_toboolean(L, LuaDLL.lua_upvalueindex(1)))
+                {
+                    string error = LuaDLL.lua_tostring(L, -1);
+                    LuaDLL.lua_pop(L, 1);
+                    throw new LuaException(error, LuaException.GetLastError());
+                }
+
+				--LuaException.SendMsgCount;
+                LuaException.L = L0;
+                return 0;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<string, object>(L, 2))
+			{
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				string arg0 = ToLua.ToString(L, 2);
+				object arg1 = ToLua.ToVarObject(L, 3);
+				obj.BroadcastMessage(arg0, arg1);                
+
+                if (LuaDLL.lua_toboolean(L, LuaDLL.lua_upvalueindex(1)))
+                {
+                    string error = LuaDLL.lua_tostring(L, -1);
+                    LuaDLL.lua_pop(L, 1);
+                    throw new LuaException(error, LuaException.GetLastError());
+                }
+
+				--LuaException.SendMsgCount;
+                LuaException.L = L0;
+                return 0;
+			}
+			else if (count == 4 && TypeChecker.CheckTypes<string, object, UnityEngine.SendMessageOptions>(L, 2))
+			{
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				string arg0 = ToLua.ToString(L, 2);
+				object arg1 = ToLua.ToVarObject(L, 3);
+				UnityEngine.SendMessageOptions arg2 = (UnityEngine.SendMessageOptions)ToLua.ToObject(L, 4);
+				obj.BroadcastMessage(arg0, arg1, arg2);                
+
+                if (LuaDLL.lua_toboolean(L, LuaDLL.lua_upvalueindex(1)))
+                {
+                    string error = LuaDLL.lua_tostring(L, -1);
+                    LuaDLL.lua_pop(L, 1);
+                    throw new LuaException(error, LuaException.GetLastError());
+                }
+
+				--LuaException.SendMsgCount;
+                LuaException.L = L0;
+                return 0;
+			}
+			else
+			{
+                --LuaException.SendMsgCount;
+                LuaException.L = L0;
+                return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.GameObject.BroadcastMessage");
+			}
+		}
+		catch (Exception e)
+		{
+			--LuaException.SendMsgCount;
+			LuaException.L = L0;
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int SendMessageUpwards(IntPtr L)
+	{
+		IntPtr L0 = LuaException.L;
+
+		try
+		{
+            ++LuaException.SendMsgCount;
+            LuaException.L = L;
+            int count = LuaDLL.lua_gettop(L);
+
+			if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
+			{
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				string arg0 = ToLua.ToString(L, 2);
+				obj.SendMessageUpwards(arg0);                
+
+                if (LuaDLL.lua_toboolean(L, LuaDLL.lua_upvalueindex(1)))
+                {
+                    string error = LuaDLL.lua_tostring(L, -1);
+                    LuaDLL.lua_pop(L, 1);
+                    throw new LuaException(error, LuaException.GetLastError());
+                }
+
+				--LuaException.SendMsgCount;
+                LuaException.L = L0;
+                return 0;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<string, UnityEngine.SendMessageOptions>(L, 2))
+			{
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				string arg0 = ToLua.ToString(L, 2);
+				UnityEngine.SendMessageOptions arg1 = (UnityEngine.SendMessageOptions)ToLua.ToObject(L, 3);
+				obj.SendMessageUpwards(arg0, arg1);                
+
+                if (LuaDLL.lua_toboolean(L, LuaDLL.lua_upvalueindex(1)))
+                {
+                    string error = LuaDLL.lua_tostring(L, -1);
+                    LuaDLL.lua_pop(L, 1);
+                    throw new LuaException(error, LuaException.GetLastError());
+                }
+
+				--LuaException.SendMsgCount;
+                LuaException.L = L0;
+                return 0;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<string, object>(L, 2))
+			{
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				string arg0 = ToLua.ToString(L, 2);
+				object arg1 = ToLua.ToVarObject(L, 3);
+				obj.SendMessageUpwards(arg0, arg1);                
+
+                if (LuaDLL.lua_toboolean(L, LuaDLL.lua_upvalueindex(1)))
+                {
+                    string error = LuaDLL.lua_tostring(L, -1);
+                    LuaDLL.lua_pop(L, 1);
+                    throw new LuaException(error, LuaException.GetLastError());
+                }
+
+				--LuaException.SendMsgCount;
+                LuaException.L = L0;
+                return 0;
+			}
+			else if (count == 4 && TypeChecker.CheckTypes<string, object, UnityEngine.SendMessageOptions>(L, 2))
+			{
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
+				string arg0 = ToLua.ToString(L, 2);
+				object arg1 = ToLua.ToVarObject(L, 3);
+				UnityEngine.SendMessageOptions arg2 = (UnityEngine.SendMessageOptions)ToLua.ToObject(L, 4);
+				obj.SendMessageUpwards(arg0, arg1, arg2);                
+
+                if (LuaDLL.lua_toboolean(L, LuaDLL.lua_upvalueindex(1)))
+                {
+                    string error = LuaDLL.lua_tostring(L, -1);
+                    LuaDLL.lua_pop(L, 1);
+                    throw new LuaException(error, LuaException.GetLastError());
+                }
+
+				--LuaException.SendMsgCount;
+                LuaException.L = L0;
+                return 0;
+			}
+			else
+			{
+				--LuaException.SendMsgCount;
+                LuaException.L = L0;                
+                return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.GameObject.SendMessageUpwards");
+			}
+		}
+		catch (Exception e)
+		{
+			--LuaException.SendMsgCount;
+			LuaException.L = L0;
 			return LuaDLL.toluaL_exception(L, e);
 		}
 	}
@@ -509,17 +643,19 @@ public class UnityEngine_GameObjectWrap
 	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 	static int SendMessage(IntPtr L)
 	{
+		IntPtr L0 = LuaException.L;
+
 		try
 		{
             ++LuaException.SendMsgCount;
+            LuaException.L = L;
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(string)))
+			if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
 			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
 				string arg0 = ToLua.ToString(L, 2);
-                obj.SendMessage(arg0);
-                --LuaException.SendMsgCount;
+				obj.SendMessage(arg0);                
 
                 if (LuaDLL.lua_toboolean(L, LuaDLL.lua_upvalueindex(1)))
                 {
@@ -528,15 +664,16 @@ public class UnityEngine_GameObjectWrap
                     throw new LuaException(error, LuaException.GetLastError());
                 }
                 
-                return 0;
+				--LuaException.SendMsgCount;
+                LuaException.L = L0;
+				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(string), typeof(UnityEngine.SendMessageOptions)))
+			else if (count == 3 && TypeChecker.CheckTypes<string, UnityEngine.SendMessageOptions>(L, 2))
 			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
 				string arg0 = ToLua.ToString(L, 2);
 				UnityEngine.SendMessageOptions arg1 = (UnityEngine.SendMessageOptions)ToLua.ToObject(L, 3);
-				obj.SendMessage(arg0, arg1);
-                --LuaException.SendMsgCount;
+				obj.SendMessage(arg0, arg1);                
 
                 if (LuaDLL.lua_toboolean(L, LuaDLL.lua_upvalueindex(1)))
                 {
@@ -545,15 +682,16 @@ public class UnityEngine_GameObjectWrap
                     throw new LuaException(error, LuaException.GetLastError());
                 }
 
-                return 0;
+				--LuaException.SendMsgCount;
+                LuaException.L = L0;
+				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(string), typeof(object)))
+			else if (count == 3 && TypeChecker.CheckTypes<string, object>(L, 2))
 			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
 				string arg0 = ToLua.ToString(L, 2);
 				object arg1 = ToLua.ToVarObject(L, 3);
-				obj.SendMessage(arg0, arg1);
-                --LuaException.SendMsgCount;
+				obj.SendMessage(arg0, arg1);                
 
                 if (LuaDLL.lua_toboolean(L, LuaDLL.lua_upvalueindex(1)))
                 {
@@ -562,16 +700,17 @@ public class UnityEngine_GameObjectWrap
                     throw new LuaException(error, LuaException.GetLastError());
                 }
 
-                return 0;
+				--LuaException.SendMsgCount;
+                LuaException.L = L0;
+				return 0;
 			}
-			else if (count == 4 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.GameObject), typeof(string), typeof(object), typeof(UnityEngine.SendMessageOptions)))
+			else if (count == 4 && TypeChecker.CheckTypes<string, object, UnityEngine.SendMessageOptions>(L, 2))
 			{
-				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.ToObject(L, 1);
+				UnityEngine.GameObject obj = (UnityEngine.GameObject)ToLua.CheckObject(L, 1, typeof(UnityEngine.GameObject));
 				string arg0 = ToLua.ToString(L, 2);
 				object arg1 = ToLua.ToVarObject(L, 3);
 				UnityEngine.SendMessageOptions arg2 = (UnityEngine.SendMessageOptions)ToLua.ToObject(L, 4);
-				obj.SendMessage(arg0, arg1, arg2);
-                --LuaException.SendMsgCount;
+				obj.SendMessage(arg0, arg1, arg2);                
 
                 if (LuaDLL.lua_toboolean(L, LuaDLL.lua_upvalueindex(1)))
                 {
@@ -580,16 +719,21 @@ public class UnityEngine_GameObjectWrap
                     throw new LuaException(error, LuaException.GetLastError());
                 }
 
-                return 0;
+				--LuaException.SendMsgCount;
+                LuaException.L = L0;
+				return 0;
 			}
 			else
 			{
-                --LuaException.SendMsgCount;                                
+                --LuaException.SendMsgCount;      
+                LuaException.L = L0;                          
                 return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.GameObject.SendMessage");     
 			}
 		}
 		catch(Exception e)
 		{
+			--LuaException.SendMsgCount;
+			LuaException.L = L0;
 			return LuaDLL.toluaL_exception(L, e);
 		}
 	}
@@ -606,7 +750,7 @@ public class UnityEngine_GameObjectWrap
 			LuaDLL.lua_pushboolean(L, o);
 			return 1;
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -627,7 +771,7 @@ public class UnityEngine_GameObjectWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index transform on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index transform on a nil value");
 		}
 	}
 
@@ -646,7 +790,7 @@ public class UnityEngine_GameObjectWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index layer on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index layer on a nil value");
 		}
 	}
 
@@ -665,7 +809,7 @@ public class UnityEngine_GameObjectWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index activeSelf on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index activeSelf on a nil value");
 		}
 	}
 
@@ -684,7 +828,7 @@ public class UnityEngine_GameObjectWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index activeInHierarchy on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index activeInHierarchy on a nil value");
 		}
 	}
 
@@ -703,7 +847,7 @@ public class UnityEngine_GameObjectWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index isStatic on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index isStatic on a nil value");
 		}
 	}
 
@@ -722,7 +866,7 @@ public class UnityEngine_GameObjectWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index tag on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index tag on a nil value");
 		}
 	}
 
@@ -741,7 +885,26 @@ public class UnityEngine_GameObjectWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index scene on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index scene on a nil value");
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int get_sceneCullingMask(IntPtr L)
+	{
+		object o = null;
+
+		try
+		{
+			o = ToLua.ToObject(L, 1);
+			UnityEngine.GameObject obj = (UnityEngine.GameObject)o;
+			ulong ret = obj.sceneCullingMask;
+			LuaDLL.tolua_pushuint64(L, ret);
+			return 1;
+		}
+		catch(Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index sceneCullingMask on a nil value");
 		}
 	}
 
@@ -755,12 +918,12 @@ public class UnityEngine_GameObjectWrap
 			o = ToLua.ToObject(L, 1);
 			UnityEngine.GameObject obj = (UnityEngine.GameObject)o;
 			UnityEngine.GameObject ret = obj.gameObject;
-			ToLua.Push(L, ret);
+			ToLua.PushSealed(L, ret);
 			return 1;
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index gameObject on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index gameObject on a nil value");
 		}
 	}
 
@@ -779,7 +942,7 @@ public class UnityEngine_GameObjectWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index layer on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index layer on a nil value");
 		}
 	}
 
@@ -798,7 +961,7 @@ public class UnityEngine_GameObjectWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index isStatic on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index isStatic on a nil value");
 		}
 	}
 
@@ -817,7 +980,7 @@ public class UnityEngine_GameObjectWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index tag on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index tag on a nil value");
 		}
 	}
 }

@@ -71,6 +71,7 @@ public class UnityEngine_KeyCodeWrap
 		L.RegVar("DoubleQuote", get_DoubleQuote, null);
 		L.RegVar("Hash", get_Hash, null);
 		L.RegVar("Dollar", get_Dollar, null);
+		L.RegVar("Percent", get_Percent, null);
 		L.RegVar("Ampersand", get_Ampersand, null);
 		L.RegVar("Quote", get_Quote, null);
 		L.RegVar("LeftParen", get_LeftParen, null);
@@ -120,6 +121,10 @@ public class UnityEngine_KeyCodeWrap
 		L.RegVar("X", get_X, null);
 		L.RegVar("Y", get_Y, null);
 		L.RegVar("Z", get_Z, null);
+		L.RegVar("LeftCurlyBracket", get_LeftCurlyBracket, null);
+		L.RegVar("Pipe", get_Pipe, null);
+		L.RegVar("RightCurlyBracket", get_RightCurlyBracket, null);
+		L.RegVar("Tilde", get_Tilde, null);
 		L.RegVar("Numlock", get_Numlock, null);
 		L.RegVar("CapsLock", get_CapsLock, null);
 		L.RegVar("ScrollLock", get_ScrollLock, null);
@@ -330,6 +335,18 @@ public class UnityEngine_KeyCodeWrap
 		L.RegVar("Joystick8Button19", get_Joystick8Button19, null);
 		L.RegFunction("IntToEnum", IntToEnum);
 		L.EndEnum();
+		TypeTraits<UnityEngine.KeyCode>.Check = CheckType;
+		StackTraits<UnityEngine.KeyCode>.Push = Push;
+	}
+
+	static void Push(IntPtr L, UnityEngine.KeyCode arg)
+	{
+		ToLua.Push(L, arg);
+	}
+
+	static bool CheckType(IntPtr L, int pos)
+	{
+		return TypeChecker.CheckEnumType(typeof(UnityEngine.KeyCode), L, pos);
 	}
 
 	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
@@ -781,6 +798,13 @@ public class UnityEngine_KeyCodeWrap
 	}
 
 	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int get_Percent(IntPtr L)
+	{
+		ToLua.Push(L, UnityEngine.KeyCode.Percent);
+		return 1;
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 	static int get_Ampersand(IntPtr L)
 	{
 		ToLua.Push(L, UnityEngine.KeyCode.Ampersand);
@@ -1120,6 +1144,34 @@ public class UnityEngine_KeyCodeWrap
 	static int get_Z(IntPtr L)
 	{
 		ToLua.Push(L, UnityEngine.KeyCode.Z);
+		return 1;
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int get_LeftCurlyBracket(IntPtr L)
+	{
+		ToLua.Push(L, UnityEngine.KeyCode.LeftCurlyBracket);
+		return 1;
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int get_Pipe(IntPtr L)
+	{
+		ToLua.Push(L, UnityEngine.KeyCode.Pipe);
+		return 1;
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int get_RightCurlyBracket(IntPtr L)
+	{
+		ToLua.Push(L, UnityEngine.KeyCode.RightCurlyBracket);
+		return 1;
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int get_Tilde(IntPtr L)
+	{
+		ToLua.Push(L, UnityEngine.KeyCode.Tilde);
 		return 1;
 	}
 

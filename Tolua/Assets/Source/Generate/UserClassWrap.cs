@@ -31,7 +31,7 @@ public class UserClassWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to ctor method: UserClass.New");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -46,11 +46,11 @@ public class UserClassWrap
 			int arg0 = (int)LuaDLL.luaL_checknumber(L, 1);
 			string arg1 = ToLua.CheckString(L, 2);
 			UnityEngine.Vector3 arg2 = ToLua.ToVector3(L, 3);
-			UnityEngine.Transform arg3 = (UnityEngine.Transform)ToLua.CheckUnityObject(L, 4, typeof(UnityEngine.Transform));
+			UnityEngine.Transform arg3 = (UnityEngine.Transform)ToLua.CheckObject<UnityEngine.Transform>(L, 4);
 			UserClass.TestFunc1(arg0, arg1, arg2, arg3);
 			return 0;
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}

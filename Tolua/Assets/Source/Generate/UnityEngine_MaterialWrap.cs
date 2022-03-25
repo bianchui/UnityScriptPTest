@@ -8,18 +8,21 @@ public class UnityEngine_MaterialWrap
 	{
 		L.BeginClass(typeof(UnityEngine.Material), typeof(UnityEngine.Object));
 		L.RegFunction("HasProperty", HasProperty);
-		L.RegFunction("GetTag", GetTag);
-		L.RegFunction("SetOverrideTag", SetOverrideTag);
-		L.RegFunction("SetShaderPassEnabled", SetShaderPassEnabled);
-		L.RegFunction("GetShaderPassEnabled", GetShaderPassEnabled);
-		L.RegFunction("Lerp", Lerp);
-		L.RegFunction("SetPass", SetPass);
-		L.RegFunction("GetPassName", GetPassName);
-		L.RegFunction("FindPass", FindPass);
-		L.RegFunction("CopyPropertiesFromMaterial", CopyPropertiesFromMaterial);
 		L.RegFunction("EnableKeyword", EnableKeyword);
 		L.RegFunction("DisableKeyword", DisableKeyword);
 		L.RegFunction("IsKeywordEnabled", IsKeywordEnabled);
+		L.RegFunction("SetShaderPassEnabled", SetShaderPassEnabled);
+		L.RegFunction("GetShaderPassEnabled", GetShaderPassEnabled);
+		L.RegFunction("GetPassName", GetPassName);
+		L.RegFunction("FindPass", FindPass);
+		L.RegFunction("SetOverrideTag", SetOverrideTag);
+		L.RegFunction("GetTag", GetTag);
+		L.RegFunction("Lerp", Lerp);
+		L.RegFunction("SetPass", SetPass);
+		L.RegFunction("CopyPropertiesFromMaterial", CopyPropertiesFromMaterial);
+		L.RegFunction("ComputeCRC", ComputeCRC);
+		L.RegFunction("GetTexturePropertyNames", GetTexturePropertyNames);
+		L.RegFunction("GetTexturePropertyNameIDs", GetTexturePropertyNameIDs);
 		L.RegFunction("SetFloat", SetFloat);
 		L.RegFunction("SetInt", SetInt);
 		L.RegFunction("SetColor", SetColor);
@@ -27,8 +30,7 @@ public class UnityEngine_MaterialWrap
 		L.RegFunction("SetMatrix", SetMatrix);
 		L.RegFunction("SetTexture", SetTexture);
 		L.RegFunction("SetBuffer", SetBuffer);
-		L.RegFunction("SetTextureOffset", SetTextureOffset);
-		L.RegFunction("SetTextureScale", SetTextureScale);
+		L.RegFunction("SetConstantBuffer", SetConstantBuffer);
 		L.RegFunction("SetFloatArray", SetFloatArray);
 		L.RegFunction("SetColorArray", SetColorArray);
 		L.RegFunction("SetVectorArray", SetVectorArray);
@@ -38,11 +40,13 @@ public class UnityEngine_MaterialWrap
 		L.RegFunction("GetColor", GetColor);
 		L.RegFunction("GetVector", GetVector);
 		L.RegFunction("GetMatrix", GetMatrix);
-		L.RegFunction("GetFloatArray", GetFloatArray);
-		L.RegFunction("GetVectorArray", GetVectorArray);
-		L.RegFunction("GetColorArray", GetColorArray);
-		L.RegFunction("GetMatrixArray", GetMatrixArray);
 		L.RegFunction("GetTexture", GetTexture);
+		L.RegFunction("GetFloatArray", GetFloatArray);
+		L.RegFunction("GetColorArray", GetColorArray);
+		L.RegFunction("GetVectorArray", GetVectorArray);
+		L.RegFunction("GetMatrixArray", GetMatrixArray);
+		L.RegFunction("SetTextureOffset", SetTextureOffset);
+		L.RegFunction("SetTextureScale", SetTextureScale);
 		L.RegFunction("GetTextureOffset", GetTextureOffset);
 		L.RegFunction("GetTextureScale", GetTextureScale);
 		L.RegFunction("New", _CreateUnityEngine_Material);
@@ -53,11 +57,12 @@ public class UnityEngine_MaterialWrap
 		L.RegVar("mainTexture", get_mainTexture, set_mainTexture);
 		L.RegVar("mainTextureOffset", get_mainTextureOffset, set_mainTextureOffset);
 		L.RegVar("mainTextureScale", get_mainTextureScale, set_mainTextureScale);
-		L.RegVar("passCount", get_passCount, null);
 		L.RegVar("renderQueue", get_renderQueue, set_renderQueue);
-		L.RegVar("shaderKeywords", get_shaderKeywords, set_shaderKeywords);
 		L.RegVar("globalIlluminationFlags", get_globalIlluminationFlags, set_globalIlluminationFlags);
+		L.RegVar("doubleSidedGI", get_doubleSidedGI, set_doubleSidedGI);
 		L.RegVar("enableInstancing", get_enableInstancing, set_enableInstancing);
+		L.RegVar("passCount", get_passCount, null);
+		L.RegVar("shaderKeywords", get_shaderKeywords, set_shaderKeywords);
 		L.EndClass();
 	}
 
@@ -68,16 +73,16 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 1 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material)))
+			if (count == 1 && TypeChecker.CheckTypes<UnityEngine.Shader>(L, 1))
 			{
-				UnityEngine.Material arg0 = (UnityEngine.Material)ToLua.CheckUnityObject(L, 1, typeof(UnityEngine.Material));
+				UnityEngine.Shader arg0 = (UnityEngine.Shader)ToLua.ToObject(L, 1);
 				UnityEngine.Material obj = new UnityEngine.Material(arg0);
 				ToLua.Push(L, obj);
 				return 1;
 			}
-			else if (count == 1 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Shader)))
+			else if (count == 1 && TypeChecker.CheckTypes<UnityEngine.Material>(L, 1))
 			{
-				UnityEngine.Shader arg0 = (UnityEngine.Shader)ToLua.CheckUnityObject(L, 1, typeof(UnityEngine.Shader));
+				UnityEngine.Material arg0 = (UnityEngine.Material)ToLua.ToObject(L, 1);
 				UnityEngine.Material obj = new UnityEngine.Material(arg0);
 				ToLua.Push(L, obj);
 				return 1;
@@ -87,7 +92,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to ctor method: UnityEngine.Material.New");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -100,17 +105,17 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int)))
+			if (count == 2 && TypeChecker.CheckTypes<int>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
 				bool o = obj.HasProperty(arg0);
 				LuaDLL.lua_pushboolean(L, o);
 				return 1;
 			}
-			else if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string)))
+			else if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				bool o = obj.HasProperty(arg0);
 				LuaDLL.lua_pushboolean(L, o);
@@ -121,7 +126,149 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.HasProperty");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int EnableKeyword(IntPtr L)
+	{
+		try
+		{
+			ToLua.CheckArgsCount(L, 2);
+			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+			string arg0 = ToLua.CheckString(L, 2);
+			obj.EnableKeyword(arg0);
+			return 0;
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int DisableKeyword(IntPtr L)
+	{
+		try
+		{
+			ToLua.CheckArgsCount(L, 2);
+			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+			string arg0 = ToLua.CheckString(L, 2);
+			obj.DisableKeyword(arg0);
+			return 0;
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int IsKeywordEnabled(IntPtr L)
+	{
+		try
+		{
+			ToLua.CheckArgsCount(L, 2);
+			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+			string arg0 = ToLua.CheckString(L, 2);
+			bool o = obj.IsKeywordEnabled(arg0);
+			LuaDLL.lua_pushboolean(L, o);
+			return 1;
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int SetShaderPassEnabled(IntPtr L)
+	{
+		try
+		{
+			ToLua.CheckArgsCount(L, 3);
+			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+			string arg0 = ToLua.CheckString(L, 2);
+			bool arg1 = LuaDLL.luaL_checkboolean(L, 3);
+			obj.SetShaderPassEnabled(arg0, arg1);
+			return 0;
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int GetShaderPassEnabled(IntPtr L)
+	{
+		try
+		{
+			ToLua.CheckArgsCount(L, 2);
+			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+			string arg0 = ToLua.CheckString(L, 2);
+			bool o = obj.GetShaderPassEnabled(arg0);
+			LuaDLL.lua_pushboolean(L, o);
+			return 1;
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int GetPassName(IntPtr L)
+	{
+		try
+		{
+			ToLua.CheckArgsCount(L, 2);
+			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+			int arg0 = (int)LuaDLL.luaL_checknumber(L, 2);
+			string o = obj.GetPassName(arg0);
+			LuaDLL.lua_pushstring(L, o);
+			return 1;
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int FindPass(IntPtr L)
+	{
+		try
+		{
+			ToLua.CheckArgsCount(L, 2);
+			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+			string arg0 = ToLua.CheckString(L, 2);
+			int o = obj.FindPass(arg0);
+			LuaDLL.lua_pushinteger(L, o);
+			return 1;
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int SetOverrideTag(IntPtr L)
+	{
+		try
+		{
+			ToLua.CheckArgsCount(L, 3);
+			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+			string arg0 = ToLua.CheckString(L, 2);
+			string arg1 = ToLua.CheckString(L, 3);
+			obj.SetOverrideTag(arg0, arg1);
+			return 0;
+		}
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -134,21 +281,21 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(bool)))
+			if (count == 3)
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				bool arg1 = LuaDLL.lua_toboolean(L, 3);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.CheckString(L, 2);
+				bool arg1 = LuaDLL.luaL_checkboolean(L, 3);
 				string o = obj.GetTag(arg0, arg1);
 				LuaDLL.lua_pushstring(L, o);
 				return 1;
 			}
-			else if (count == 4 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(bool), typeof(string)))
+			else if (count == 4)
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				bool arg1 = LuaDLL.lua_toboolean(L, 3);
-				string arg2 = ToLua.ToString(L, 4);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.CheckString(L, 2);
+				bool arg1 = LuaDLL.luaL_checkboolean(L, 3);
+				string arg2 = ToLua.CheckString(L, 4);
 				string o = obj.GetTag(arg0, arg1, arg2);
 				LuaDLL.lua_pushstring(L, o);
 				return 1;
@@ -158,61 +305,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetTag");
 			}
 		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int SetOverrideTag(IntPtr L)
-	{
-		try
-		{
-			ToLua.CheckArgsCount(L, 3);
-			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject(L, 1, typeof(UnityEngine.Material));
-			string arg0 = ToLua.CheckString(L, 2);
-			string arg1 = ToLua.CheckString(L, 3);
-			obj.SetOverrideTag(arg0, arg1);
-			return 0;
-		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int SetShaderPassEnabled(IntPtr L)
-	{
-		try
-		{
-			ToLua.CheckArgsCount(L, 3);
-			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject(L, 1, typeof(UnityEngine.Material));
-			string arg0 = ToLua.CheckString(L, 2);
-			bool arg1 = LuaDLL.luaL_checkboolean(L, 3);
-			obj.SetShaderPassEnabled(arg0, arg1);
-			return 0;
-		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int GetShaderPassEnabled(IntPtr L)
-	{
-		try
-		{
-			ToLua.CheckArgsCount(L, 2);
-			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject(L, 1, typeof(UnityEngine.Material));
-			string arg0 = ToLua.CheckString(L, 2);
-			bool o = obj.GetShaderPassEnabled(arg0);
-			LuaDLL.lua_pushboolean(L, o);
-			return 1;
-		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -224,14 +317,14 @@ public class UnityEngine_MaterialWrap
 		try
 		{
 			ToLua.CheckArgsCount(L, 4);
-			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject(L, 1, typeof(UnityEngine.Material));
-			UnityEngine.Material arg0 = (UnityEngine.Material)ToLua.CheckUnityObject(L, 2, typeof(UnityEngine.Material));
-			UnityEngine.Material arg1 = (UnityEngine.Material)ToLua.CheckUnityObject(L, 3, typeof(UnityEngine.Material));
+			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+			UnityEngine.Material arg0 = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 2);
+			UnityEngine.Material arg1 = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 3);
 			float arg2 = (float)LuaDLL.luaL_checknumber(L, 4);
 			obj.Lerp(arg0, arg1, arg2);
 			return 0;
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -243,49 +336,13 @@ public class UnityEngine_MaterialWrap
 		try
 		{
 			ToLua.CheckArgsCount(L, 2);
-			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject(L, 1, typeof(UnityEngine.Material));
+			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 			int arg0 = (int)LuaDLL.luaL_checknumber(L, 2);
 			bool o = obj.SetPass(arg0);
 			LuaDLL.lua_pushboolean(L, o);
 			return 1;
 		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int GetPassName(IntPtr L)
-	{
-		try
-		{
-			ToLua.CheckArgsCount(L, 2);
-			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject(L, 1, typeof(UnityEngine.Material));
-			int arg0 = (int)LuaDLL.luaL_checknumber(L, 2);
-			string o = obj.GetPassName(arg0);
-			LuaDLL.lua_pushstring(L, o);
-			return 1;
-		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int FindPass(IntPtr L)
-	{
-		try
-		{
-			ToLua.CheckArgsCount(L, 2);
-			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject(L, 1, typeof(UnityEngine.Material));
-			string arg0 = ToLua.CheckString(L, 2);
-			int o = obj.FindPass(arg0);
-			LuaDLL.lua_pushinteger(L, o);
-			return 1;
-		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -297,64 +354,93 @@ public class UnityEngine_MaterialWrap
 		try
 		{
 			ToLua.CheckArgsCount(L, 2);
-			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject(L, 1, typeof(UnityEngine.Material));
-			UnityEngine.Material arg0 = (UnityEngine.Material)ToLua.CheckUnityObject(L, 2, typeof(UnityEngine.Material));
+			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+			UnityEngine.Material arg0 = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 2);
 			obj.CopyPropertiesFromMaterial(arg0);
 			return 0;
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
 	}
 
 	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int EnableKeyword(IntPtr L)
+	static int ComputeCRC(IntPtr L)
 	{
 		try
 		{
-			ToLua.CheckArgsCount(L, 2);
-			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject(L, 1, typeof(UnityEngine.Material));
-			string arg0 = ToLua.CheckString(L, 2);
-			obj.EnableKeyword(arg0);
-			return 0;
-		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int DisableKeyword(IntPtr L)
-	{
-		try
-		{
-			ToLua.CheckArgsCount(L, 2);
-			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject(L, 1, typeof(UnityEngine.Material));
-			string arg0 = ToLua.CheckString(L, 2);
-			obj.DisableKeyword(arg0);
-			return 0;
-		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int IsKeywordEnabled(IntPtr L)
-	{
-		try
-		{
-			ToLua.CheckArgsCount(L, 2);
-			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject(L, 1, typeof(UnityEngine.Material));
-			string arg0 = ToLua.CheckString(L, 2);
-			bool o = obj.IsKeywordEnabled(arg0);
-			LuaDLL.lua_pushboolean(L, o);
+			ToLua.CheckArgsCount(L, 1);
+			UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+			int o = obj.ComputeCRC();
+			LuaDLL.lua_pushinteger(L, o);
 			return 1;
 		}
-		catch(Exception e)
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int GetTexturePropertyNames(IntPtr L)
+	{
+		try
+		{
+			int count = LuaDLL.lua_gettop(L);
+
+			if (count == 1)
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string[] o = obj.GetTexturePropertyNames();
+				ToLua.Push(L, o);
+				return 1;
+			}
+			else if (count == 2)
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				System.Collections.Generic.List<string> arg0 = (System.Collections.Generic.List<string>)ToLua.CheckObject(L, 2, typeof(System.Collections.Generic.List<string>));
+				obj.GetTexturePropertyNames(arg0);
+				return 0;
+			}
+			else
+			{
+				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetTexturePropertyNames");
+			}
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int GetTexturePropertyNameIDs(IntPtr L)
+	{
+		try
+		{
+			int count = LuaDLL.lua_gettop(L);
+
+			if (count == 1)
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int[] o = obj.GetTexturePropertyNameIDs();
+				ToLua.Push(L, o);
+				return 1;
+			}
+			else if (count == 2)
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				System.Collections.Generic.List<int> arg0 = (System.Collections.Generic.List<int>)ToLua.CheckObject(L, 2, typeof(System.Collections.Generic.List<int>));
+				obj.GetTexturePropertyNameIDs(arg0);
+				return 0;
+			}
+			else
+			{
+				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetTexturePropertyNameIDs");
+			}
+		}
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -367,17 +453,17 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(float)))
+			if (count == 3 && TypeChecker.CheckTypes<int, float>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
 				float arg1 = (float)LuaDLL.lua_tonumber(L, 3);
 				obj.SetFloat(arg0, arg1);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(float)))
+			else if (count == 3 && TypeChecker.CheckTypes<string, float>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				float arg1 = (float)LuaDLL.lua_tonumber(L, 3);
 				obj.SetFloat(arg0, arg1);
@@ -388,7 +474,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetFloat");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -401,17 +487,17 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(int)))
+			if (count == 3 && TypeChecker.CheckTypes<int, int>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
 				int arg1 = (int)LuaDLL.lua_tonumber(L, 3);
 				obj.SetInt(arg0, arg1);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(int)))
+			else if (count == 3 && TypeChecker.CheckTypes<string, int>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				int arg1 = (int)LuaDLL.lua_tonumber(L, 3);
 				obj.SetInt(arg0, arg1);
@@ -422,7 +508,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetInt");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -435,17 +521,17 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(UnityEngine.Color)))
+			if (count == 3 && TypeChecker.CheckTypes<int, UnityEngine.Color>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
 				UnityEngine.Color arg1 = ToLua.ToColor(L, 3);
 				obj.SetColor(arg0, arg1);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(UnityEngine.Color)))
+			else if (count == 3 && TypeChecker.CheckTypes<string, UnityEngine.Color>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				UnityEngine.Color arg1 = ToLua.ToColor(L, 3);
 				obj.SetColor(arg0, arg1);
@@ -456,7 +542,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetColor");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -469,17 +555,17 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(UnityEngine.Vector4)))
+			if (count == 3 && TypeChecker.CheckTypes<int, UnityEngine.Vector4>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
 				UnityEngine.Vector4 arg1 = ToLua.ToVector4(L, 3);
 				obj.SetVector(arg0, arg1);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(UnityEngine.Vector4)))
+			else if (count == 3 && TypeChecker.CheckTypes<string, UnityEngine.Vector4>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				UnityEngine.Vector4 arg1 = ToLua.ToVector4(L, 3);
 				obj.SetVector(arg0, arg1);
@@ -490,7 +576,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetVector");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -503,19 +589,19 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(UnityEngine.Matrix4x4)))
+			if (count == 3 && TypeChecker.CheckTypes<int, UnityEngine.Matrix4x4>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				UnityEngine.Matrix4x4 arg1 = (UnityEngine.Matrix4x4)ToLua.ToObject(L, 3);
+				UnityEngine.Matrix4x4 arg1 = StackTraits<UnityEngine.Matrix4x4>.To(L, 3);
 				obj.SetMatrix(arg0, arg1);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(UnityEngine.Matrix4x4)))
+			else if (count == 3 && TypeChecker.CheckTypes<string, UnityEngine.Matrix4x4>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
-				UnityEngine.Matrix4x4 arg1 = (UnityEngine.Matrix4x4)ToLua.ToObject(L, 3);
+				UnityEngine.Matrix4x4 arg1 = StackTraits<UnityEngine.Matrix4x4>.To(L, 3);
 				obj.SetMatrix(arg0, arg1);
 				return 0;
 			}
@@ -524,7 +610,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetMatrix");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -537,20 +623,38 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(UnityEngine.Texture)))
+			if (count == 3 && TypeChecker.CheckTypes<int, UnityEngine.Texture>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
 				UnityEngine.Texture arg1 = (UnityEngine.Texture)ToLua.ToObject(L, 3);
 				obj.SetTexture(arg0, arg1);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(UnityEngine.Texture)))
+			else if (count == 3 && TypeChecker.CheckTypes<string, UnityEngine.Texture>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				UnityEngine.Texture arg1 = (UnityEngine.Texture)ToLua.ToObject(L, 3);
 				obj.SetTexture(arg0, arg1);
+				return 0;
+			}
+			else if (count == 4 && TypeChecker.CheckTypes<int, UnityEngine.RenderTexture, UnityEngine.Rendering.RenderTextureSubElement>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
+				UnityEngine.RenderTexture arg1 = (UnityEngine.RenderTexture)ToLua.ToObject(L, 3);
+				UnityEngine.Rendering.RenderTextureSubElement arg2 = (UnityEngine.Rendering.RenderTextureSubElement)ToLua.ToObject(L, 4);
+				obj.SetTexture(arg0, arg1, arg2);
+				return 0;
+			}
+			else if (count == 4 && TypeChecker.CheckTypes<string, UnityEngine.RenderTexture, UnityEngine.Rendering.RenderTextureSubElement>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.ToString(L, 2);
+				UnityEngine.RenderTexture arg1 = (UnityEngine.RenderTexture)ToLua.ToObject(L, 3);
+				UnityEngine.Rendering.RenderTextureSubElement arg2 = (UnityEngine.Rendering.RenderTextureSubElement)ToLua.ToObject(L, 4);
+				obj.SetTexture(arg0, arg1, arg2);
 				return 0;
 			}
 			else
@@ -558,7 +662,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetTexture");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -571,17 +675,17 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(UnityEngine.ComputeBuffer)))
+			if (count == 3 && TypeChecker.CheckTypes<int, UnityEngine.ComputeBuffer>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
 				UnityEngine.ComputeBuffer arg1 = (UnityEngine.ComputeBuffer)ToLua.ToObject(L, 3);
 				obj.SetBuffer(arg0, arg1);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(UnityEngine.ComputeBuffer)))
+			else if (count == 3 && TypeChecker.CheckTypes<string, UnityEngine.ComputeBuffer>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				UnityEngine.ComputeBuffer arg1 = (UnityEngine.ComputeBuffer)ToLua.ToObject(L, 3);
 				obj.SetBuffer(arg0, arg1);
@@ -592,75 +696,45 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetBuffer");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
 	}
 
 	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int SetTextureOffset(IntPtr L)
+	static int SetConstantBuffer(IntPtr L)
 	{
 		try
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(UnityEngine.Vector2)))
+			if (count == 5 && TypeChecker.CheckTypes<int, UnityEngine.ComputeBuffer, int, int>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				UnityEngine.Vector2 arg1 = ToLua.ToVector2(L, 3);
-				obj.SetTextureOffset(arg0, arg1);
+				UnityEngine.ComputeBuffer arg1 = (UnityEngine.ComputeBuffer)ToLua.ToObject(L, 3);
+				int arg2 = (int)LuaDLL.lua_tonumber(L, 4);
+				int arg3 = (int)LuaDLL.lua_tonumber(L, 5);
+				obj.SetConstantBuffer(arg0, arg1, arg2, arg3);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(UnityEngine.Vector2)))
+			else if (count == 5 && TypeChecker.CheckTypes<string, UnityEngine.ComputeBuffer, int, int>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
-				UnityEngine.Vector2 arg1 = ToLua.ToVector2(L, 3);
-				obj.SetTextureOffset(arg0, arg1);
+				UnityEngine.ComputeBuffer arg1 = (UnityEngine.ComputeBuffer)ToLua.ToObject(L, 3);
+				int arg2 = (int)LuaDLL.lua_tonumber(L, 4);
+				int arg3 = (int)LuaDLL.lua_tonumber(L, 5);
+				obj.SetConstantBuffer(arg0, arg1, arg2, arg3);
 				return 0;
 			}
 			else
 			{
-				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetTextureOffset");
+				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetConstantBuffer");
 			}
 		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int SetTextureScale(IntPtr L)
-	{
-		try
-		{
-			int count = LuaDLL.lua_gettop(L);
-
-			if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(UnityEngine.Vector2)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				UnityEngine.Vector2 arg1 = ToLua.ToVector2(L, 3);
-				obj.SetTextureScale(arg0, arg1);
-				return 0;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(UnityEngine.Vector2)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				UnityEngine.Vector2 arg1 = ToLua.ToVector2(L, 3);
-				obj.SetTextureScale(arg0, arg1);
-				return 0;
-			}
-			else
-			{
-				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetTextureScale");
-			}
-		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -673,35 +747,35 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(float[])))
+			if (count == 3 && TypeChecker.CheckTypes<int, System.Collections.Generic.List<float>>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				float[] arg1 = ToLua.CheckNumberArray<float>(L, 3);
-				obj.SetFloatArray(arg0, arg1);
-				return 0;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(float[])))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				float[] arg1 = ToLua.CheckNumberArray<float>(L, 3);
+				System.Collections.Generic.List<float> arg1 = (System.Collections.Generic.List<float>)ToLua.ToObject(L, 3);
 				obj.SetFloatArray(arg0, arg1);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(System.Collections.Generic.List<float>)))
+			else if (count == 3 && TypeChecker.CheckTypes<int, float[]>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
+				float[] arg1 = ToLua.ToNumberArray<float>(L, 3);
+				obj.SetFloatArray(arg0, arg1);
+				return 0;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<string, System.Collections.Generic.List<float>>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				System.Collections.Generic.List<float> arg1 = (System.Collections.Generic.List<float>)ToLua.ToObject(L, 3);
 				obj.SetFloatArray(arg0, arg1);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(System.Collections.Generic.List<float>)))
+			else if (count == 3 && TypeChecker.CheckTypes<string, float[]>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				System.Collections.Generic.List<float> arg1 = (System.Collections.Generic.List<float>)ToLua.ToObject(L, 3);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.ToString(L, 2);
+				float[] arg1 = ToLua.ToNumberArray<float>(L, 3);
 				obj.SetFloatArray(arg0, arg1);
 				return 0;
 			}
@@ -710,7 +784,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetFloatArray");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -723,35 +797,35 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(UnityEngine.Color[])))
+			if (count == 3 && TypeChecker.CheckTypes<int, System.Collections.Generic.List<UnityEngine.Color>>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				UnityEngine.Color[] arg1 = ToLua.CheckObjectArray<UnityEngine.Color>(L, 3);
-				obj.SetColorArray(arg0, arg1);
-				return 0;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(UnityEngine.Color[])))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				UnityEngine.Color[] arg1 = ToLua.CheckObjectArray<UnityEngine.Color>(L, 3);
+				System.Collections.Generic.List<UnityEngine.Color> arg1 = (System.Collections.Generic.List<UnityEngine.Color>)ToLua.ToObject(L, 3);
 				obj.SetColorArray(arg0, arg1);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(System.Collections.Generic.List<UnityEngine.Color>)))
+			else if (count == 3 && TypeChecker.CheckTypes<int, UnityEngine.Color[]>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
+				UnityEngine.Color[] arg1 = ToLua.ToStructArray<UnityEngine.Color>(L, 3);
+				obj.SetColorArray(arg0, arg1);
+				return 0;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<string, System.Collections.Generic.List<UnityEngine.Color>>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				System.Collections.Generic.List<UnityEngine.Color> arg1 = (System.Collections.Generic.List<UnityEngine.Color>)ToLua.ToObject(L, 3);
 				obj.SetColorArray(arg0, arg1);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(System.Collections.Generic.List<UnityEngine.Color>)))
+			else if (count == 3 && TypeChecker.CheckTypes<string, UnityEngine.Color[]>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				System.Collections.Generic.List<UnityEngine.Color> arg1 = (System.Collections.Generic.List<UnityEngine.Color>)ToLua.ToObject(L, 3);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.ToString(L, 2);
+				UnityEngine.Color[] arg1 = ToLua.ToStructArray<UnityEngine.Color>(L, 3);
 				obj.SetColorArray(arg0, arg1);
 				return 0;
 			}
@@ -760,7 +834,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetColorArray");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -773,35 +847,35 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(UnityEngine.Vector4[])))
+			if (count == 3 && TypeChecker.CheckTypes<int, System.Collections.Generic.List<UnityEngine.Vector4>>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				UnityEngine.Vector4[] arg1 = ToLua.CheckObjectArray<UnityEngine.Vector4>(L, 3);
-				obj.SetVectorArray(arg0, arg1);
-				return 0;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(UnityEngine.Vector4[])))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				UnityEngine.Vector4[] arg1 = ToLua.CheckObjectArray<UnityEngine.Vector4>(L, 3);
+				System.Collections.Generic.List<UnityEngine.Vector4> arg1 = (System.Collections.Generic.List<UnityEngine.Vector4>)ToLua.ToObject(L, 3);
 				obj.SetVectorArray(arg0, arg1);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(System.Collections.Generic.List<UnityEngine.Vector4>)))
+			else if (count == 3 && TypeChecker.CheckTypes<int, UnityEngine.Vector4[]>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
+				UnityEngine.Vector4[] arg1 = ToLua.ToStructArray<UnityEngine.Vector4>(L, 3);
+				obj.SetVectorArray(arg0, arg1);
+				return 0;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<string, System.Collections.Generic.List<UnityEngine.Vector4>>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				System.Collections.Generic.List<UnityEngine.Vector4> arg1 = (System.Collections.Generic.List<UnityEngine.Vector4>)ToLua.ToObject(L, 3);
 				obj.SetVectorArray(arg0, arg1);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(System.Collections.Generic.List<UnityEngine.Vector4>)))
+			else if (count == 3 && TypeChecker.CheckTypes<string, UnityEngine.Vector4[]>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				System.Collections.Generic.List<UnityEngine.Vector4> arg1 = (System.Collections.Generic.List<UnityEngine.Vector4>)ToLua.ToObject(L, 3);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.ToString(L, 2);
+				UnityEngine.Vector4[] arg1 = ToLua.ToStructArray<UnityEngine.Vector4>(L, 3);
 				obj.SetVectorArray(arg0, arg1);
 				return 0;
 			}
@@ -810,7 +884,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetVectorArray");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -823,35 +897,35 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(UnityEngine.Matrix4x4[])))
+			if (count == 3 && TypeChecker.CheckTypes<int, System.Collections.Generic.List<UnityEngine.Matrix4x4>>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				UnityEngine.Matrix4x4[] arg1 = ToLua.CheckObjectArray<UnityEngine.Matrix4x4>(L, 3);
-				obj.SetMatrixArray(arg0, arg1);
-				return 0;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(UnityEngine.Matrix4x4[])))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				UnityEngine.Matrix4x4[] arg1 = ToLua.CheckObjectArray<UnityEngine.Matrix4x4>(L, 3);
+				System.Collections.Generic.List<UnityEngine.Matrix4x4> arg1 = (System.Collections.Generic.List<UnityEngine.Matrix4x4>)ToLua.ToObject(L, 3);
 				obj.SetMatrixArray(arg0, arg1);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(System.Collections.Generic.List<UnityEngine.Matrix4x4>)))
+			else if (count == 3 && TypeChecker.CheckTypes<int, UnityEngine.Matrix4x4[]>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
+				UnityEngine.Matrix4x4[] arg1 = ToLua.ToStructArray<UnityEngine.Matrix4x4>(L, 3);
+				obj.SetMatrixArray(arg0, arg1);
+				return 0;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<string, System.Collections.Generic.List<UnityEngine.Matrix4x4>>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				System.Collections.Generic.List<UnityEngine.Matrix4x4> arg1 = (System.Collections.Generic.List<UnityEngine.Matrix4x4>)ToLua.ToObject(L, 3);
 				obj.SetMatrixArray(arg0, arg1);
 				return 0;
 			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(System.Collections.Generic.List<UnityEngine.Matrix4x4>)))
+			else if (count == 3 && TypeChecker.CheckTypes<string, UnityEngine.Matrix4x4[]>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				System.Collections.Generic.List<UnityEngine.Matrix4x4> arg1 = (System.Collections.Generic.List<UnityEngine.Matrix4x4>)ToLua.ToObject(L, 3);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.ToString(L, 2);
+				UnityEngine.Matrix4x4[] arg1 = ToLua.ToStructArray<UnityEngine.Matrix4x4>(L, 3);
 				obj.SetMatrixArray(arg0, arg1);
 				return 0;
 			}
@@ -860,7 +934,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetMatrixArray");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -873,17 +947,17 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int)))
+			if (count == 2 && TypeChecker.CheckTypes<int>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
 				float o = obj.GetFloat(arg0);
 				LuaDLL.lua_pushnumber(L, o);
 				return 1;
 			}
-			else if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string)))
+			else if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				float o = obj.GetFloat(arg0);
 				LuaDLL.lua_pushnumber(L, o);
@@ -894,7 +968,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetFloat");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -907,17 +981,17 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int)))
+			if (count == 2 && TypeChecker.CheckTypes<int>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
 				int o = obj.GetInt(arg0);
 				LuaDLL.lua_pushinteger(L, o);
 				return 1;
 			}
-			else if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string)))
+			else if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				int o = obj.GetInt(arg0);
 				LuaDLL.lua_pushinteger(L, o);
@@ -928,7 +1002,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetInt");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -941,17 +1015,17 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int)))
+			if (count == 2 && TypeChecker.CheckTypes<int>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
 				UnityEngine.Color o = obj.GetColor(arg0);
 				ToLua.Push(L, o);
 				return 1;
 			}
-			else if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string)))
+			else if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				UnityEngine.Color o = obj.GetColor(arg0);
 				ToLua.Push(L, o);
@@ -962,7 +1036,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetColor");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -975,17 +1049,17 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int)))
+			if (count == 2 && TypeChecker.CheckTypes<int>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
 				UnityEngine.Vector4 o = obj.GetVector(arg0);
 				ToLua.Push(L, o);
 				return 1;
 			}
-			else if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string)))
+			else if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				UnityEngine.Vector4 o = obj.GetVector(arg0);
 				ToLua.Push(L, o);
@@ -996,7 +1070,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetVector");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -1009,17 +1083,17 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int)))
+			if (count == 2 && TypeChecker.CheckTypes<int>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
 				UnityEngine.Matrix4x4 o = obj.GetMatrix(arg0);
 				ToLua.PushValue(L, o);
 				return 1;
 			}
-			else if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string)))
+			else if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				UnityEngine.Matrix4x4 o = obj.GetMatrix(arg0);
 				ToLua.PushValue(L, o);
@@ -1030,207 +1104,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetMatrix");
 			}
 		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int GetFloatArray(IntPtr L)
-	{
-		try
-		{
-			int count = LuaDLL.lua_gettop(L);
-
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				float[] o = obj.GetFloatArray(arg0);
-				ToLua.Push(L, o);
-				return 1;
-			}
-			else if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				float[] o = obj.GetFloatArray(arg0);
-				ToLua.Push(L, o);
-				return 1;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(System.Collections.Generic.List<float>)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				System.Collections.Generic.List<float> arg1 = (System.Collections.Generic.List<float>)ToLua.ToObject(L, 3);
-				obj.GetFloatArray(arg0, arg1);
-				return 0;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(System.Collections.Generic.List<float>)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				System.Collections.Generic.List<float> arg1 = (System.Collections.Generic.List<float>)ToLua.ToObject(L, 3);
-				obj.GetFloatArray(arg0, arg1);
-				return 0;
-			}
-			else
-			{
-				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetFloatArray");
-			}
-		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int GetVectorArray(IntPtr L)
-	{
-		try
-		{
-			int count = LuaDLL.lua_gettop(L);
-
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				UnityEngine.Vector4[] o = obj.GetVectorArray(arg0);
-				ToLua.Push(L, o);
-				return 1;
-			}
-			else if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				UnityEngine.Vector4[] o = obj.GetVectorArray(arg0);
-				ToLua.Push(L, o);
-				return 1;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(System.Collections.Generic.List<UnityEngine.Vector4>)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				System.Collections.Generic.List<UnityEngine.Vector4> arg1 = (System.Collections.Generic.List<UnityEngine.Vector4>)ToLua.ToObject(L, 3);
-				obj.GetVectorArray(arg0, arg1);
-				return 0;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(System.Collections.Generic.List<UnityEngine.Vector4>)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				System.Collections.Generic.List<UnityEngine.Vector4> arg1 = (System.Collections.Generic.List<UnityEngine.Vector4>)ToLua.ToObject(L, 3);
-				obj.GetVectorArray(arg0, arg1);
-				return 0;
-			}
-			else
-			{
-				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetVectorArray");
-			}
-		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int GetColorArray(IntPtr L)
-	{
-		try
-		{
-			int count = LuaDLL.lua_gettop(L);
-
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				UnityEngine.Color[] o = obj.GetColorArray(arg0);
-				ToLua.Push(L, o);
-				return 1;
-			}
-			else if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				UnityEngine.Color[] o = obj.GetColorArray(arg0);
-				ToLua.Push(L, o);
-				return 1;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(System.Collections.Generic.List<UnityEngine.Color>)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				System.Collections.Generic.List<UnityEngine.Color> arg1 = (System.Collections.Generic.List<UnityEngine.Color>)ToLua.ToObject(L, 3);
-				obj.GetColorArray(arg0, arg1);
-				return 0;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(System.Collections.Generic.List<UnityEngine.Color>)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				System.Collections.Generic.List<UnityEngine.Color> arg1 = (System.Collections.Generic.List<UnityEngine.Color>)ToLua.ToObject(L, 3);
-				obj.GetColorArray(arg0, arg1);
-				return 0;
-			}
-			else
-			{
-				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetColorArray");
-			}
-		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int GetMatrixArray(IntPtr L)
-	{
-		try
-		{
-			int count = LuaDLL.lua_gettop(L);
-
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				UnityEngine.Matrix4x4[] o = obj.GetMatrixArray(arg0);
-				ToLua.Push(L, o);
-				return 1;
-			}
-			else if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				UnityEngine.Matrix4x4[] o = obj.GetMatrixArray(arg0);
-				ToLua.Push(L, o);
-				return 1;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string), typeof(System.Collections.Generic.List<UnityEngine.Matrix4x4>)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				string arg0 = ToLua.ToString(L, 2);
-				System.Collections.Generic.List<UnityEngine.Matrix4x4> arg1 = (System.Collections.Generic.List<UnityEngine.Matrix4x4>)ToLua.ToObject(L, 3);
-				obj.GetMatrixArray(arg0, arg1);
-				return 0;
-			}
-			else if (count == 3 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int), typeof(System.Collections.Generic.List<UnityEngine.Matrix4x4>)))
-			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
-				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
-				System.Collections.Generic.List<UnityEngine.Matrix4x4> arg1 = (System.Collections.Generic.List<UnityEngine.Matrix4x4>)ToLua.ToObject(L, 3);
-				obj.GetMatrixArray(arg0, arg1);
-				return 0;
-			}
-			else
-			{
-				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetMatrixArray");
-			}
-		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -1243,17 +1117,17 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int)))
+			if (count == 2 && TypeChecker.CheckTypes<int>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
 				UnityEngine.Texture o = obj.GetTexture(arg0);
 				ToLua.Push(L, o);
 				return 1;
 			}
-			else if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string)))
+			else if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				UnityEngine.Texture o = obj.GetTexture(arg0);
 				ToLua.Push(L, o);
@@ -1264,7 +1138,275 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetTexture");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int GetFloatArray(IntPtr L)
+	{
+		try
+		{
+			int count = LuaDLL.lua_gettop(L);
+
+			if (count == 2 && TypeChecker.CheckTypes<int>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
+				float[] o = obj.GetFloatArray(arg0);
+				ToLua.Push(L, o);
+				return 1;
+			}
+			else if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.ToString(L, 2);
+				float[] o = obj.GetFloatArray(arg0);
+				ToLua.Push(L, o);
+				return 1;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<int, System.Collections.Generic.List<float>>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
+				System.Collections.Generic.List<float> arg1 = (System.Collections.Generic.List<float>)ToLua.ToObject(L, 3);
+				obj.GetFloatArray(arg0, arg1);
+				return 0;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<string, System.Collections.Generic.List<float>>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.ToString(L, 2);
+				System.Collections.Generic.List<float> arg1 = (System.Collections.Generic.List<float>)ToLua.ToObject(L, 3);
+				obj.GetFloatArray(arg0, arg1);
+				return 0;
+			}
+			else
+			{
+				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetFloatArray");
+			}
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int GetColorArray(IntPtr L)
+	{
+		try
+		{
+			int count = LuaDLL.lua_gettop(L);
+
+			if (count == 2 && TypeChecker.CheckTypes<int>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
+				UnityEngine.Color[] o = obj.GetColorArray(arg0);
+				ToLua.Push(L, o);
+				return 1;
+			}
+			else if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.ToString(L, 2);
+				UnityEngine.Color[] o = obj.GetColorArray(arg0);
+				ToLua.Push(L, o);
+				return 1;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<int, System.Collections.Generic.List<UnityEngine.Color>>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
+				System.Collections.Generic.List<UnityEngine.Color> arg1 = (System.Collections.Generic.List<UnityEngine.Color>)ToLua.ToObject(L, 3);
+				obj.GetColorArray(arg0, arg1);
+				return 0;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<string, System.Collections.Generic.List<UnityEngine.Color>>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.ToString(L, 2);
+				System.Collections.Generic.List<UnityEngine.Color> arg1 = (System.Collections.Generic.List<UnityEngine.Color>)ToLua.ToObject(L, 3);
+				obj.GetColorArray(arg0, arg1);
+				return 0;
+			}
+			else
+			{
+				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetColorArray");
+			}
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int GetVectorArray(IntPtr L)
+	{
+		try
+		{
+			int count = LuaDLL.lua_gettop(L);
+
+			if (count == 2 && TypeChecker.CheckTypes<int>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
+				UnityEngine.Vector4[] o = obj.GetVectorArray(arg0);
+				ToLua.Push(L, o);
+				return 1;
+			}
+			else if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.ToString(L, 2);
+				UnityEngine.Vector4[] o = obj.GetVectorArray(arg0);
+				ToLua.Push(L, o);
+				return 1;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<int, System.Collections.Generic.List<UnityEngine.Vector4>>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
+				System.Collections.Generic.List<UnityEngine.Vector4> arg1 = (System.Collections.Generic.List<UnityEngine.Vector4>)ToLua.ToObject(L, 3);
+				obj.GetVectorArray(arg0, arg1);
+				return 0;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<string, System.Collections.Generic.List<UnityEngine.Vector4>>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.ToString(L, 2);
+				System.Collections.Generic.List<UnityEngine.Vector4> arg1 = (System.Collections.Generic.List<UnityEngine.Vector4>)ToLua.ToObject(L, 3);
+				obj.GetVectorArray(arg0, arg1);
+				return 0;
+			}
+			else
+			{
+				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetVectorArray");
+			}
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int GetMatrixArray(IntPtr L)
+	{
+		try
+		{
+			int count = LuaDLL.lua_gettop(L);
+
+			if (count == 2 && TypeChecker.CheckTypes<int>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
+				UnityEngine.Matrix4x4[] o = obj.GetMatrixArray(arg0);
+				ToLua.Push(L, o);
+				return 1;
+			}
+			else if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.ToString(L, 2);
+				UnityEngine.Matrix4x4[] o = obj.GetMatrixArray(arg0);
+				ToLua.Push(L, o);
+				return 1;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<int, System.Collections.Generic.List<UnityEngine.Matrix4x4>>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
+				System.Collections.Generic.List<UnityEngine.Matrix4x4> arg1 = (System.Collections.Generic.List<UnityEngine.Matrix4x4>)ToLua.ToObject(L, 3);
+				obj.GetMatrixArray(arg0, arg1);
+				return 0;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<string, System.Collections.Generic.List<UnityEngine.Matrix4x4>>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.ToString(L, 2);
+				System.Collections.Generic.List<UnityEngine.Matrix4x4> arg1 = (System.Collections.Generic.List<UnityEngine.Matrix4x4>)ToLua.ToObject(L, 3);
+				obj.GetMatrixArray(arg0, arg1);
+				return 0;
+			}
+			else
+			{
+				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetMatrixArray");
+			}
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int SetTextureOffset(IntPtr L)
+	{
+		try
+		{
+			int count = LuaDLL.lua_gettop(L);
+
+			if (count == 3 && TypeChecker.CheckTypes<int, UnityEngine.Vector2>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
+				UnityEngine.Vector2 arg1 = ToLua.ToVector2(L, 3);
+				obj.SetTextureOffset(arg0, arg1);
+				return 0;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<string, UnityEngine.Vector2>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.ToString(L, 2);
+				UnityEngine.Vector2 arg1 = ToLua.ToVector2(L, 3);
+				obj.SetTextureOffset(arg0, arg1);
+				return 0;
+			}
+			else
+			{
+				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetTextureOffset");
+			}
+		}
+		catch (Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e);
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int SetTextureScale(IntPtr L)
+	{
+		try
+		{
+			int count = LuaDLL.lua_gettop(L);
+
+			if (count == 3 && TypeChecker.CheckTypes<int, UnityEngine.Vector2>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
+				UnityEngine.Vector2 arg1 = ToLua.ToVector2(L, 3);
+				obj.SetTextureScale(arg0, arg1);
+				return 0;
+			}
+			else if (count == 3 && TypeChecker.CheckTypes<string, UnityEngine.Vector2>(L, 2))
+			{
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
+				string arg0 = ToLua.ToString(L, 2);
+				UnityEngine.Vector2 arg1 = ToLua.ToVector2(L, 3);
+				obj.SetTextureScale(arg0, arg1);
+				return 0;
+			}
+			else
+			{
+				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.SetTextureScale");
+			}
+		}
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -1277,17 +1419,17 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int)))
+			if (count == 2 && TypeChecker.CheckTypes<int>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
 				UnityEngine.Vector2 o = obj.GetTextureOffset(arg0);
 				ToLua.Push(L, o);
 				return 1;
 			}
-			else if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string)))
+			else if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				UnityEngine.Vector2 o = obj.GetTextureOffset(arg0);
 				ToLua.Push(L, o);
@@ -1298,7 +1440,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetTextureOffset");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -1311,17 +1453,17 @@ public class UnityEngine_MaterialWrap
 		{
 			int count = LuaDLL.lua_gettop(L);
 
-			if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(int)))
+			if (count == 2 && TypeChecker.CheckTypes<int>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				int arg0 = (int)LuaDLL.lua_tonumber(L, 2);
 				UnityEngine.Vector2 o = obj.GetTextureScale(arg0);
 				ToLua.Push(L, o);
 				return 1;
 			}
-			else if (count == 2 && TypeChecker.CheckTypes(L, 1, typeof(UnityEngine.Material), typeof(string)))
+			else if (count == 2 && TypeChecker.CheckTypes<string>(L, 2))
 			{
-				UnityEngine.Material obj = (UnityEngine.Material)ToLua.ToObject(L, 1);
+				UnityEngine.Material obj = (UnityEngine.Material)ToLua.CheckObject<UnityEngine.Material>(L, 1);
 				string arg0 = ToLua.ToString(L, 2);
 				UnityEngine.Vector2 o = obj.GetTextureScale(arg0);
 				ToLua.Push(L, o);
@@ -1332,7 +1474,7 @@ public class UnityEngine_MaterialWrap
 				return LuaDLL.luaL_throw(L, "invalid arguments to method: UnityEngine.Material.GetTextureScale");
 			}
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -1350,7 +1492,7 @@ public class UnityEngine_MaterialWrap
 			LuaDLL.lua_pushboolean(L, o);
 			return 1;
 		}
-		catch(Exception e)
+		catch (Exception e)
 		{
 			return LuaDLL.toluaL_exception(L, e);
 		}
@@ -1366,12 +1508,12 @@ public class UnityEngine_MaterialWrap
 			o = ToLua.ToObject(L, 1);
 			UnityEngine.Material obj = (UnityEngine.Material)o;
 			UnityEngine.Shader ret = obj.shader;
-			ToLua.Push(L, ret);
+			ToLua.PushSealed(L, ret);
 			return 1;
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index shader on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index shader on a nil value");
 		}
 	}
 
@@ -1390,7 +1532,7 @@ public class UnityEngine_MaterialWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index color on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index color on a nil value");
 		}
 	}
 
@@ -1409,7 +1551,7 @@ public class UnityEngine_MaterialWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index mainTexture on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index mainTexture on a nil value");
 		}
 	}
 
@@ -1428,7 +1570,7 @@ public class UnityEngine_MaterialWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index mainTextureOffset on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index mainTextureOffset on a nil value");
 		}
 	}
 
@@ -1447,26 +1589,7 @@ public class UnityEngine_MaterialWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index mainTextureScale on a nil value" : e.Message);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int get_passCount(IntPtr L)
-	{
-		object o = null;
-
-		try
-		{
-			o = ToLua.ToObject(L, 1);
-			UnityEngine.Material obj = (UnityEngine.Material)o;
-			int ret = obj.passCount;
-			LuaDLL.lua_pushinteger(L, ret);
-			return 1;
-		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index passCount on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index mainTextureScale on a nil value");
 		}
 	}
 
@@ -1485,26 +1608,7 @@ public class UnityEngine_MaterialWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index renderQueue on a nil value" : e.Message);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int get_shaderKeywords(IntPtr L)
-	{
-		object o = null;
-
-		try
-		{
-			o = ToLua.ToObject(L, 1);
-			UnityEngine.Material obj = (UnityEngine.Material)o;
-			string[] ret = obj.shaderKeywords;
-			ToLua.Push(L, ret);
-			return 1;
-		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index shaderKeywords on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index renderQueue on a nil value");
 		}
 	}
 
@@ -1523,7 +1627,26 @@ public class UnityEngine_MaterialWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index globalIlluminationFlags on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index globalIlluminationFlags on a nil value");
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int get_doubleSidedGI(IntPtr L)
+	{
+		object o = null;
+
+		try
+		{
+			o = ToLua.ToObject(L, 1);
+			UnityEngine.Material obj = (UnityEngine.Material)o;
+			bool ret = obj.doubleSidedGI;
+			LuaDLL.lua_pushboolean(L, ret);
+			return 1;
+		}
+		catch(Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index doubleSidedGI on a nil value");
 		}
 	}
 
@@ -1542,7 +1665,45 @@ public class UnityEngine_MaterialWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index enableInstancing on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index enableInstancing on a nil value");
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int get_passCount(IntPtr L)
+	{
+		object o = null;
+
+		try
+		{
+			o = ToLua.ToObject(L, 1);
+			UnityEngine.Material obj = (UnityEngine.Material)o;
+			int ret = obj.passCount;
+			LuaDLL.lua_pushinteger(L, ret);
+			return 1;
+		}
+		catch(Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index passCount on a nil value");
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int get_shaderKeywords(IntPtr L)
+	{
+		object o = null;
+
+		try
+		{
+			o = ToLua.ToObject(L, 1);
+			UnityEngine.Material obj = (UnityEngine.Material)o;
+			string[] ret = obj.shaderKeywords;
+			ToLua.Push(L, ret);
+			return 1;
+		}
+		catch(Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index shaderKeywords on a nil value");
 		}
 	}
 
@@ -1555,13 +1716,13 @@ public class UnityEngine_MaterialWrap
 		{
 			o = ToLua.ToObject(L, 1);
 			UnityEngine.Material obj = (UnityEngine.Material)o;
-			UnityEngine.Shader arg0 = (UnityEngine.Shader)ToLua.CheckUnityObject(L, 2, typeof(UnityEngine.Shader));
+			UnityEngine.Shader arg0 = (UnityEngine.Shader)ToLua.CheckObject(L, 2, typeof(UnityEngine.Shader));
 			obj.shader = arg0;
 			return 0;
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index shader on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index shader on a nil value");
 		}
 	}
 
@@ -1580,7 +1741,7 @@ public class UnityEngine_MaterialWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index color on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index color on a nil value");
 		}
 	}
 
@@ -1593,13 +1754,13 @@ public class UnityEngine_MaterialWrap
 		{
 			o = ToLua.ToObject(L, 1);
 			UnityEngine.Material obj = (UnityEngine.Material)o;
-			UnityEngine.Texture arg0 = (UnityEngine.Texture)ToLua.CheckUnityObject(L, 2, typeof(UnityEngine.Texture));
+			UnityEngine.Texture arg0 = (UnityEngine.Texture)ToLua.CheckObject<UnityEngine.Texture>(L, 2);
 			obj.mainTexture = arg0;
 			return 0;
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index mainTexture on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index mainTexture on a nil value");
 		}
 	}
 
@@ -1618,7 +1779,7 @@ public class UnityEngine_MaterialWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index mainTextureOffset on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index mainTextureOffset on a nil value");
 		}
 	}
 
@@ -1637,7 +1798,7 @@ public class UnityEngine_MaterialWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index mainTextureScale on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index mainTextureScale on a nil value");
 		}
 	}
 
@@ -1656,26 +1817,7 @@ public class UnityEngine_MaterialWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index renderQueue on a nil value" : e.Message);
-		}
-	}
-
-	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-	static int set_shaderKeywords(IntPtr L)
-	{
-		object o = null;
-
-		try
-		{
-			o = ToLua.ToObject(L, 1);
-			UnityEngine.Material obj = (UnityEngine.Material)o;
-			string[] arg0 = ToLua.CheckStringArray(L, 2);
-			obj.shaderKeywords = arg0;
-			return 0;
-		}
-		catch(Exception e)
-		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index shaderKeywords on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index renderQueue on a nil value");
 		}
 	}
 
@@ -1694,7 +1836,26 @@ public class UnityEngine_MaterialWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index globalIlluminationFlags on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index globalIlluminationFlags on a nil value");
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int set_doubleSidedGI(IntPtr L)
+	{
+		object o = null;
+
+		try
+		{
+			o = ToLua.ToObject(L, 1);
+			UnityEngine.Material obj = (UnityEngine.Material)o;
+			bool arg0 = LuaDLL.luaL_checkboolean(L, 2);
+			obj.doubleSidedGI = arg0;
+			return 0;
+		}
+		catch(Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index doubleSidedGI on a nil value");
 		}
 	}
 
@@ -1713,7 +1874,26 @@ public class UnityEngine_MaterialWrap
 		}
 		catch(Exception e)
 		{
-			return LuaDLL.toluaL_exception(L, e, o == null ? "attempt to index enableInstancing on a nil value" : e.Message);
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index enableInstancing on a nil value");
+		}
+	}
+
+	[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+	static int set_shaderKeywords(IntPtr L)
+	{
+		object o = null;
+
+		try
+		{
+			o = ToLua.ToObject(L, 1);
+			UnityEngine.Material obj = (UnityEngine.Material)o;
+			string[] arg0 = ToLua.CheckStringArray(L, 2);
+			obj.shaderKeywords = arg0;
+			return 0;
+		}
+		catch(Exception e)
+		{
+			return LuaDLL.toluaL_exception(L, e, o, "attempt to index shaderKeywords on a nil value");
 		}
 	}
 }
