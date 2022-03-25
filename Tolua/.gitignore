@@ -12,6 +12,8 @@ obj/*
 /*.sln
 *.o
 
+/build_package/
+
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
