@@ -138,7 +138,7 @@ public static class CustomSettings
 
         _GT(typeof(QualitySettings)),
         _GT(typeof(RenderSettings)),                                                   
-        _GT(typeof(BlendWeights)),           
+        _GT(typeof(SkinWeights)),           
         _GT(typeof(RenderTexture)),
         _GT(typeof(Resources)),
     };
@@ -162,7 +162,7 @@ public static class CustomSettings
         typeof(AnimationClip),
         typeof(AnimationState),
 
-        typeof(BlendWeights),
+        typeof(SkinWeights),
         typeof(RenderTexture),
         typeof(Rigidbody),
     };
