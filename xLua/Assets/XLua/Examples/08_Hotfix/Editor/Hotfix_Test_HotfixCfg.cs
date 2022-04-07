@@ -14,11 +14,11 @@ namespace XLuaTest {
         public static List<Type> by_field = new List<Type>() {
             typeof(HotfixTest),
             typeof(HotfixCalc),
-            typeof(GenericClass<>),
+            typeof(GenericClass<double>),
             typeof(InnerTypeTest),
             typeof(BaseTest),
             typeof(StructTest),
-            typeof(GenericStruct<>),
+            typeof(GenericStruct<int>),
             typeof(StatefullTest),
         };
 
