@@ -8,4 +8,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Test.unity
     guid: 2a8bff8139303634583f063fd16957c8
+  - enabled: 0
+    path: Assets/XLua/Examples/08_Hotfix/HotfixTest.unity
+    guid: 71b8de6dc619ca64da460a7200f00b9c
+  - enabled: 0
+    path: Assets/XLua/Examples/08_Hotfix/HotfixTest2.unity
+    guid: eb945840f7055384cbf1a3fb17903afe
   m_configObjects: {}

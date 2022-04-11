@@ -20,6 +20,7 @@ public class VersionSwitch : MonoBehaviour {
 
     private void CloseEnv() {
         if (_env != null) {
+            _env.DoString("unhotfix()");
             _env.Dispose();
             _env = null;
         }
@@ -37,6 +38,11 @@ public class VersionSwitch : MonoBehaviour {
                         print('<<<<<<<<Update in lua hotfix1, tick = ' .. self.tick)
                     end
                 end)
+
+function unhotfix()
+    xlua.hotfix(CS.VersionSwitch, 'Update', nil);
+end
+
             ");
         }
         if (GUI.Button(new Rect(10, 100, 300, 80), "Hotfix2")) {
@@ -51,6 +57,10 @@ public class VersionSwitch : MonoBehaviour {
                         print('<<<<<<<<Update in lua hotfix2, tick = ' .. self.tick)
                     end
                 end)
+
+function unhotfix()
+    xlua.hotfix(CS.VersionSwitch, 'Update', nil);
+end
             ");
         }
         if (GUI.Button(new Rect(10, 200, 300, 80), "Close")) {
