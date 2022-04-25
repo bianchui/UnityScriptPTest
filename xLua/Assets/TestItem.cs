@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
+using XLua;
 
 public abstract class TestItem
 {
@@ -68,10 +69,13 @@ public class TestFFI : TestLua {
 }
 
 public class TestFFI2 : TestItem {
-    Func<IntPtr, double> m_f;
+    [CSharpCallLua]
+    delegate int TestFunction(IntPtr a);
+
+    TestFunction m_f;
 
     public TestFFI2(PTest ptest, int index) : base(ptest, index) {
-        m_ptest.scriptEnv.Get("ffi_test3", out m_f);
+        m_f = m_ptest.scriptEnv.Get<TestFunction>("ffi_test3");
     }
 
     protected override unsafe void DoTest() {
@@ -82,6 +86,12 @@ public class TestFFI2 : TestItem {
             m_f(cls.handle());
             for (int i = 0; i < count; ++i) {
                 if (vector3[i].x != i + 1) {
+                    throw new Exception();
+                }
+                if (vector3[i].y != i + 2) {
+                    throw new Exception();
+                }
+                if (vector3[i].z != i + 3) {
                     throw new Exception();
                 }
             }
