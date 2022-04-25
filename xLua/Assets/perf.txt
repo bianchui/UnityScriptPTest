@@ -213,3 +213,23 @@ function ffi_test2() -- ffi的代码
 	end
 	return os.clock() - t
 end
+
+ffi.cdef[[
+	vector3c* test_ffi_create(void* handle, int size);
+]]
+
+function ffi_test3(handle)
+	local t = os.clock()
+	local count = 100000
+
+	local vecs = test_ffi_create(handle, count);
+	for i = 0, count - 1 do
+		vecs[i] = {x=1 + i, y = 2 + i, z = 3 + i}
+	end
+	local total = 0
+	-- gc后记录下面for循环运行时的时间和内存占用，这里省略
+	for i = 0, count - 1 do
+		total = total + vecs[i].x + vecs[i].y + vecs[i].z
+	end
+	return os.clock() - t
+end

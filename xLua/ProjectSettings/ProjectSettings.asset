@@ -174,7 +174,8 @@ PlayerSettings:
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
-    Android: com.codeanna.XLuaPTest
+    Android: com.github.bianchui.lua
+    Standalone: com.github.bianchui.lua
     iPhone: com.github.bianchui.lua
   buildNumber: {}
   AndroidBundleVersionCode: 1

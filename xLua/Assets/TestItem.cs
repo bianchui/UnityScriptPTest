@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using XLua;
 using UnityEngine;
 
 public abstract class TestItem
@@ -15,11 +14,26 @@ public abstract class TestItem
         m_index = index;
     }
 
-    public abstract IEnumerator Test();
+    public virtual IEnumerator Test() {
+        m_ptest.logText += "Test " + m_index + " Begin:\n";
+        double totalMS = 0;
+
+        int count = m_ptest.runCount;
+        for (int i = 1; i <= count; ++i) {
+            m_ptest.GC();
+            yield return m_ptest.ws;
+            long ts = System.DateTime.Now.Ticks;
+            DoTest();
+            double t = (double)((System.DateTime.Now.Ticks - ts) / 10000.0);
+            totalMS += t;
+            m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
+        }
+
+        m_ptest.logText += string.Format("Test {0} complete average ms: {1}\n", m_index, totalMS / count);
+    }
+
+    protected abstract void DoTest();
 }
-
-
-
 
 public class TestLua : TestItem
 {
@@ -34,28 +48,15 @@ public class TestLua : TestItem
         m_trans = trans;
     }
 
-
-    public override IEnumerator Test()
-    {
-        m_ptest.logText += m_luaFuncName + " Begin:\n";
-        double totalMS = 0;
-
+    public override IEnumerator Test() {
         m_ptest.scriptEnv.Get(m_luaFuncName, out m_f);
-        int count = m_ptest.runCount;
-        for (int i = 1; i <= count; ++i)
-        {
-            m_ptest.GC();
-            yield return m_ptest.ws;
-
-
-            object ret = m_f(m_trans);
-            double t = (double)ret * 1000;
-            totalMS += t;
-            m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
-        }
-
-        m_ptest.logText += string.Format("{0} complete average ms: {1}\n", m_luaFuncName, totalMS / count);
+        return base.Test();
     }
+
+    protected override void DoTest() {
+        m_f(m_trans);
+    }
+
 }
 
 public class TestFFI : TestLua {
@@ -64,7 +65,28 @@ public class TestFFI : TestLua {
     {
         m_luaFuncName = "ffi_test" + index;
     }
+}
 
+public class TestFFI2 : TestItem {
+    Func<IntPtr, double> m_f;
+
+    public TestFFI2(PTest ptest, int index) : base(ptest, index) {
+        m_ptest.scriptEnv.Get("ffi_test3", out m_f);
+    }
+
+    protected override unsafe void DoTest() {
+        FFIClass cls;
+        using (cls = new FFIClass()) {
+            int count = 100000;
+            Vector3* vector3 = cls.getArray(count);
+            m_f(cls.handle());
+            for (int i = 0; i < count; ++i) {
+                if (vector3[i].x != i + 1) {
+                    throw new Exception();
+                }
+            }
+        }
+    }
 }
 
 public class TestEmptyFunc : TestItem
@@ -76,30 +98,15 @@ public class TestEmptyFunc : TestItem
     {
     }
 
-    public override IEnumerator Test()
-    {
-        m_ptest.logText += "Test" + m_index + " Begin:\n";
-
+    public override IEnumerator Test() {
         m_ptest.scriptEnv.Get("EmptyFunc", out m_f);
-        int count = m_ptest.runCount;
-        double totalMS = 0;
-        for (int i = 1; i <= count; ++i)
-        {
-            m_ptest.GC();
-            yield return m_ptest.ws;
+        return base.Test();
+    }
 
-            long ts = System.DateTime.Now.Ticks;
-            for (int j = 0; j < 200000; ++j)
-            {
-                m_f();
-            }
-            double t = (double)((System.DateTime.Now.Ticks - ts) / 10000.0);
-
-            totalMS += t;
-            m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
+    protected override void DoTest() {
+        for (int j = 0; j < 200000; ++j) {
+            m_f();
         }
-
-        m_ptest.logText += string.Format("Test{0} complete average ms: {1}\n", m_index, totalMS / count);
     }
 }
 
@@ -115,28 +122,9 @@ public class TestGetLuaValue : TestItem
         m_valueName = valueName;
     }
 
-    public override IEnumerator Test()
-    {
-        m_ptest.logText += "Test" + m_index + " Begin:\n";
-
-        int count = m_ptest.runCount;
-        double totalMS = 0;
-        for (int i = 1; i <= count; ++i)
-        {
-            m_ptest.GC();
-            yield return m_ptest.ws;
-
-            long ts = System.DateTime.Now.Ticks;
-            for (int j = 0; j < 200000; ++j)
-            {
-                m_value = m_ptest.scriptEnv.GetInPath<object>(m_valueName);
-            }
-            double t = (double)((System.DateTime.Now.Ticks - ts) / 10000.0);
-
-            totalMS += t;
-            m_ptest.logText += string.Format("{0}: ms: {1}\n", i, t);
+    protected override void DoTest() {
+        for (int j = 0; j < 200000; ++j) {
+            m_value = m_ptest.scriptEnv.GetInPath<object>(m_valueName);
         }
-
-        m_ptest.logText += string.Format("Test{0} complete average ms: {1}\n", m_index, totalMS / count);
     }
 }
