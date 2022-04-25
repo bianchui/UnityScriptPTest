@@ -177,7 +177,7 @@ PlayerSettings:
     Android: com.codeanna.ToluaPTest
     Standalone: unity.lua.tolua
     Tizen: 
-    iPhone: com.lua.tolua
+    iPhone: com.github.bianchui.lua
     tvOS: 
   buildNumber:
     iPhone: 

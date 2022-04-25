@@ -175,3 +175,41 @@ function Test10(trans)
 		
 	return os.clock() - t
 end
+
+function ffi_test1() -- lua table的代码
+	local t = os.clock()
+	local count = 100000
+
+	local vecs = {}
+	for i = 1, count do
+	  vecs[i] = {x=1, y = 2, z = 3}
+	end
+	local total = 0
+	-- gc后记录下面for循环运行时的时间和内存占用，这里省略
+	for i = 1, count do
+		total = total + vecs[i].x + vecs[i].y + vecs[i].z
+	end
+	return os.clock() - t
+end
+
+local ffi = require("ffi")
+ffi.cdef[[
+	typedef struct { float x, y, z; } vector3c;
+]]
+
+function ffi_test2() -- ffi的代码
+	local t = os.clock()
+	local count = 100000
+
+
+	local vecs = ffi.new("vector3c[?]", count)
+	for i = 0, count - 1 do
+		vecs[i] = {x=1, y = 2, z = 3}
+	end
+	local total = 0
+	-- gc后记录下面for循环运行时的时间和内存占用，这里省略
+	for i = 0, count - 1 do
+		total = total + vecs[i].x + vecs[i].y + vecs[i].z
+	end
+	return os.clock() - t
+end

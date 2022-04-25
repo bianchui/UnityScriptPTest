@@ -2,6 +2,7 @@
 using XLua;
 using System.Collections;
 using System;
+using System.Collections.Generic;
 
 public class PTest : MonoBehaviour
 {
@@ -38,7 +39,7 @@ public class PTest : MonoBehaviour
 
         runCount = 10;
 
-        testItems = new TestItem[17];
+        testItems = new TestItem[19];
         for (int i = 0; i <= 10; ++i)
         {
             testItems[i] = new TestLua(this, i, transform);
@@ -49,6 +50,9 @@ public class PTest : MonoBehaviour
         testItems[14] = new TestGetLuaValue(this, 14, "_V2");
         testItems[15] = new TestGetLuaValue(this, 15, "_V3");
         testItems[16] = new TestGetLuaValue(this, 16, "_V4");
+        
+        testItems[17] = new TestFFI(this, 1, transform);
+        testItems[18] = new TestFFI(this, 2, transform);
     }
 
     void log(string cond, string trace, LogType lt)

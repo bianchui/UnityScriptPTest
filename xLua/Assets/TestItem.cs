@@ -23,7 +23,7 @@ public abstract class TestItem
 
 public class TestLua : TestItem
 {
-    string m_luaFuncName;
+    protected string m_luaFuncName;
     Transform m_trans;
     Func<Transform, double> m_f;
 
@@ -58,6 +58,14 @@ public class TestLua : TestItem
     }
 }
 
+public class TestFFI : TestLua {
+    public TestFFI(PTest ptest, int index, Transform trans)
+        : base(ptest, index, trans)
+    {
+        m_luaFuncName = "ffi_test" + index;
+    }
+
+}
 
 public class TestEmptyFunc : TestItem
 {
