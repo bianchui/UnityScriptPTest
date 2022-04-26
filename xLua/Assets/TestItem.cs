@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using XLua;
 
@@ -78,8 +79,11 @@ public class TestFFI2 : TestItem {
         m_f = m_ptest.scriptEnv.Get<TestFunction>("ffi_test3");
     }
 
+    List<FFIClass> _objs = new List<FFIClass>();
+
     protected override unsafe void DoTest() {
         FFIClass cls;
+        //_objs.Add(cls);
         using (cls = new FFIClass()) {
             int count = 100000;
             Vector3* vector3 = cls.getArray(count);
@@ -99,6 +103,21 @@ public class TestFFI2 : TestItem {
     }
 }
 
+public class TestFFI3 : TestItem {
+    delegate int TestFunction(IntPtr a);
+
+    TestFunction m_f;
+
+    public TestFFI3(PTest ptest, int index) : base(ptest, index) {
+        m_f = m_ptest.scriptEnv.Get<TestFunction>("ffi_test4");
+    }
+
+    protected override unsafe void DoTest() {
+        IntPtr ptr = FFIClass.test_ffi_ptr();
+        Debug.Log(ptr);
+        m_f(ptr);
+    }
+}
 public class TestEmptyFunc : TestItem
 {
     Action m_f;

@@ -24,6 +24,9 @@ public class FFIClass : IDisposable {
     [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
     private static extern void test_ffi_close(IntPtr ptr);
 
+    [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
+    public static extern IntPtr test_ffi_ptr();
+
     private IntPtr _handle;
     public FFIClass() {
         Debug.Log("FFIClass()");
@@ -40,6 +43,7 @@ public class FFIClass : IDisposable {
 
     ~FFIClass() {
         Debug.Log("~FFIClass()");
+        Destroy();
     }
 
     public void Dispose() {

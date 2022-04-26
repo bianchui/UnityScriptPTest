@@ -220,13 +220,14 @@ end
 
 ffi.cdef[[
 	vector3c* test_ffi_create(void* handle, int size);
+	int test_ffi_ptr2(void* handle);
 ]]
 
 function ffi_test3(handle)
 	local t = os.clock()
 	local count = 100000
 
-	local vecs = ffi.C.test_ffi_create(handle, count);
+	local vecs = ffi.C.test_ffi_create(handle, count)
 	for i = 0, count - 1 do
 		vecs[i] = {x=1 + i, y = 2 + i, z = 3 + i}
 	end
@@ -236,4 +237,9 @@ function ffi_test3(handle)
 		total = total + vecs[i].x + vecs[i].y + vecs[i].z
 	end
 	return os.clock() - t
+end
+
+function ffi_test4(handle)
+	print(handle)
+	print("ff:" .. ffi.C.test_ffi_ptr2(handle))
 end
