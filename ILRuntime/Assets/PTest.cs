@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
+using ILRuntime.Runtime;
 using UnityEngine;
 using ILRuntime.Runtime.Enviorment;
 
@@ -60,7 +61,7 @@ public class PTest : MonoBehaviour {
     IEnumerator Init()
     {
         //首先实例化ILRuntime的AppDomain，AppDomain是一个应用程序域，每个AppDomain都是一个独立的沙盒
-        appdomain = new ILRuntime.Runtime.Enviorment.AppDomain();
+        appdomain = new ILRuntime.Runtime.Enviorment.AppDomain(ILRuntimeJITFlags.JITImmediately);
         //正常项目中应该是自行从其他地方下载dll，或者打包在AssetBundle中读取，平时开发以及为了演示方便直接从StreammingAssets中读取，
         //正式发布的时候需要大家自行从其他地方读取dll
 
