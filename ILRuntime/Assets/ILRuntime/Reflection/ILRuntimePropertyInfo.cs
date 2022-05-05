@@ -17,9 +17,8 @@ namespace ILRuntime.Reflection
         Mono.Cecil.PropertyDefinition definition;
         ILRuntime.Runtime.Enviorment.AppDomain appdomain;
 
-        object[] customAttributes;
+        Attribute[] customAttributes;
         Type[] attributeTypes;
-        static object[] param = new object[1];
 
         public ILMethod Getter
         {
@@ -38,6 +37,28 @@ namespace ILRuntime.Reflection
                 setter = value;
             }
         }
+
+        public bool IsPublic
+        {
+            get
+            {
+                if (getter != null)
+                    return getter.Definition.IsPublic;
+                else
+                    return setter.Definition.IsPublic;
+            }
+        }
+
+        public bool IsStatic
+        {
+            get
+            {
+                if (getter != null)
+                    return getter.IsStatic;
+                else
+                    return setter.IsStatic;
+            }
+        }
         public ILRuntimePropertyInfo(Mono.Cecil.PropertyDefinition definition, ILType dType)
         {
             this.definition = definition;
@@ -47,7 +68,7 @@ namespace ILRuntime.Reflection
 
         void InitializeCustomAttribute()
         {
-            customAttributes = new object[definition.CustomAttributes.Count];
+            customAttributes = new Attribute[definition.CustomAttributes.Count];
             attributeTypes = new Type[customAttributes.Length];
             for (int i = 0; i < definition.CustomAttributes.Count; i++)
             {
@@ -55,7 +76,7 @@ namespace ILRuntime.Reflection
                 var at = appdomain.GetType(attribute.AttributeType, null, null);
                 try
                 {
-                    object ins = attribute.CreateInstance(at, appdomain);
+                    Attribute ins = attribute.CreateInstance(at, appdomain) as Attribute;
 
                     attributeTypes[i] = at.ReflectionType;
                     customAttributes[i] = ins;
@@ -120,6 +141,15 @@ namespace ILRuntime.Reflection
             }
         }
 
+        public ILRuntime.Mono.Cecil.TypeReference Definition
+        {
+            get
+            {
+                return definition.GetMethod != null ? definition.GetMethod.ReturnType : definition.SetMethod.Parameters[0].ParameterType;
+            }
+        }
+
+
         public override Type DeclaringType
         {
             get
@@ -140,11 +170,14 @@ namespace ILRuntime.Reflection
         {
             if (customAttributes == null)
                 InitializeCustomAttribute();
+
             List<object> res = new List<object>();
             for (int i = 0; i < customAttributes.Length; i++)
             {
-                if (attributeTypes[i] == attributeType)
+                if (attributeTypes[i].Equals(attributeType))
+                {
                     res.Add(customAttributes[i]);
+                }
             }
             return res.ToArray();
         }
@@ -153,10 +186,13 @@ namespace ILRuntime.Reflection
         {
             if (customAttributes == null)
                 InitializeCustomAttribute();
+
             for (int i = 0; i < customAttributes.Length; i++)
             {
-                if (attributeTypes[i] == attributeType)
+                if (attributeTypes[i].Equals(attributeType))
+                {
                     return true;
+                }
             }
             return false;
         }
@@ -175,7 +211,7 @@ namespace ILRuntime.Reflection
 
         public override ParameterInfo[] GetIndexParameters()
         {
-            throw new NotImplementedException();
+            return new ParameterInfo[0];
         }
 
         public override MethodInfo GetSetMethod(bool nonPublic)
@@ -187,13 +223,44 @@ namespace ILRuntime.Reflection
 
         public override object GetValue(object obj, BindingFlags invokeAttr, Binder binder, object[] index, CultureInfo culture)
         {
-            return appdomain.Invoke(getter, obj, null);
+            var indexCnt = index != null ? index.Length : 0;
+            if (getter.ParameterCount <= indexCnt)
+            {
+                using (var ctx = appdomain.BeginInvoke(getter))
+                {
+                    if (!IsStatic)
+                        ctx.PushObject(obj);
+                    for (int i = 0; i < getter.ParameterCount; i++)
+                    {
+                        ctx.PushObject(index[i], !getter.Parameters[i].IsValueType);
+                    }
+                    ctx.Invoke();
+                    return ctx.ReadObject(getter.ReturnType.TypeForCLR);
+                }
+            }
+            else
+                throw new ArgumentException("Index count mismatch");
         }
 
         public override void SetValue(object obj, object value, BindingFlags invokeAttr, Binder binder, object[] index, CultureInfo culture)
         {
-            param[0] = value;
-            appdomain.Invoke(setter, obj, param);
+            var indexCnt = index != null ? index.Length : 0;
+            if (setter.ParameterCount <= indexCnt + 1)
+            {
+                using (var ctx = appdomain.BeginInvoke(setter))
+                {
+                    if (!IsStatic)
+                        ctx.PushObject(obj);
+                    for (int i = 0; i < setter.ParameterCount - 1; i++)
+                    {
+                        ctx.PushObject(index[i], !setter.Parameters[i].IsValueType);
+                    }
+                    ctx.PushObject(value, !setter.Parameters[setter.ParameterCount - 1].IsValueType);
+                    ctx.Invoke();
+                }
+            }
+            else
+                throw new ArgumentException("Index count mismatch");
         }
     }
 }

@@ -11,7 +11,6 @@ namespace ILRuntime.Runtime.Debugger
     {
         private Socket _socket = null;
         private bool _ready = false;
-        bool connectFailed = false;
         private const int MAX_BUFF_SIZE = 256 * 1024;
         private const int HEAD_SIZE = 8;
         private byte[] _headBuffer = new byte[HEAD_SIZE];
@@ -68,7 +67,7 @@ namespace ILRuntime.Runtime.Debugger
                 {
                     ReceivePayload(e.Buffer, e.BytesTransferred);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     Close();
                     return;
@@ -137,9 +136,15 @@ namespace ILRuntime.Runtime.Debugger
                 int type = br.ReadInt32();
                 msgBuff = br.ReadBytes(lastMsgLength - 4);
 
-                if (OnReciveMessage != null)
-                    OnReciveMessage((DebugMessageType)type, msgBuff);
-
+                try
+                {
+                    if (OnReciveMessage != null)
+                        OnReciveMessage((DebugMessageType)type, msgBuff);
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
                 lastMsgLength = -1;
                 remaining = (int)(recvBuffer.Length - recvBuffer.Position);
                 //保留剩余数据

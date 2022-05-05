@@ -5,6 +5,7 @@ using System.Text;
 
 using ILRuntime.CLR.TypeSystem;
 using ILRuntime.CLR.Method;
+using ILRuntime.Other;
 using ILRuntime.Runtime.Intepreter;
 
 namespace ILRuntime.Runtime.Enviorment
@@ -15,11 +16,18 @@ namespace ILRuntime.Runtime.Enviorment
         List<DelegateMapNode> functions = new List<DelegateMapNode>();
         IDelegateAdapter zeroParamMethodAdapter = new MethodDelegateAdapter();
         IDelegateAdapter dummyAdapter = new DummyDelegateAdapter();
-        Dictionary<Type, Func<Delegate, Delegate>> clrDelegates = new Dictionary<Type, Func<Delegate, Delegate>>();
+        Dictionary<Type, Func<Delegate, Delegate>> clrDelegates = new Dictionary<Type, Func<Delegate, Delegate>>(new ByReferenceKeyComparer<Type>());
+        Func<Delegate, Delegate> defaultConverter;
         Enviorment.AppDomain appdomain;
         public DelegateManager(Enviorment.AppDomain appdomain)
         {
             this.appdomain = appdomain;
+            defaultConverter = DefaultConverterStub;
+        }
+
+        static Delegate DefaultConverterStub(Delegate dele)
+        {
+            return dele;
         }
 
         public void RegisterDelegateConvertor<T>(Func<Delegate, Delegate> action)
@@ -39,7 +47,7 @@ namespace ILRuntime.Runtime.Enviorment
             node.Adapter = new MethodDelegateAdapter<T1>();
             node.ParameterTypes = new Type[] { typeof(T1) };
             methods.Add(node);
-            RegisterDelegateConvertor<Action<T1>>((dele) => dele);
+            RegisterDelegateConvertor<Action<T1>>(defaultConverter);
         }
 
         public void RegisterMethodDelegate<T1, T2>()
@@ -48,7 +56,7 @@ namespace ILRuntime.Runtime.Enviorment
             node.Adapter = new MethodDelegateAdapter<T1, T2>();
             node.ParameterTypes = new Type[] { typeof(T1), typeof(T2) };
             methods.Add(node);
-            RegisterDelegateConvertor<Action<T1, T2>>((dele) => dele);
+            RegisterDelegateConvertor<Action<T1, T2>>(defaultConverter);
         }
 
         public void RegisterMethodDelegate<T1, T2, T3>()
@@ -57,7 +65,7 @@ namespace ILRuntime.Runtime.Enviorment
             node.Adapter = new MethodDelegateAdapter<T1, T2, T3>();
             node.ParameterTypes = new Type[] { typeof(T1), typeof(T2), typeof(T3) };
             methods.Add(node);
-            RegisterDelegateConvertor<Action<T1, T2, T3>>((dele) => dele);
+            RegisterDelegateConvertor<Action<T1, T2, T3>>(defaultConverter);
         }
 
         public void RegisterMethodDelegate<T1, T2, T3, T4>()
@@ -66,8 +74,19 @@ namespace ILRuntime.Runtime.Enviorment
             node.Adapter = new MethodDelegateAdapter<T1, T2, T3, T4>();
             node.ParameterTypes = new Type[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) };
             methods.Add(node);
-            RegisterDelegateConvertor<Action<T1, T2, T3, T4>>((dele) => dele);
+            RegisterDelegateConvertor<Action<T1, T2, T3, T4>>(defaultConverter);
         }
+
+#if NET_4_6 || NET_STANDARD_2_0
+        public void RegisterMethodDelegate<T1, T2, T3, T4, T5>()
+        {
+            DelegateMapNode node = new Enviorment.DelegateManager.DelegateMapNode();
+            node.Adapter = new MethodDelegateAdapter<T1, T2, T3, T4, T5>();
+            node.ParameterTypes = new Type[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5) };
+            methods.Add(node);
+            RegisterDelegateConvertor<Action<T1, T2, T3, T4, T5>>(defaultConverter);
+        }
+#endif
 
         public void RegisterFunctionDelegate<TResult>()
         {
@@ -75,7 +94,7 @@ namespace ILRuntime.Runtime.Enviorment
             node.Adapter = new FunctionDelegateAdapter<TResult>();
             node.ParameterTypes = new Type[] { typeof(TResult) };
             functions.Add(node);
-            RegisterDelegateConvertor<Func<TResult>>((dele) => dele);
+            RegisterDelegateConvertor<Func<TResult>>(defaultConverter);
         }
 
         public void RegisterFunctionDelegate<T1, TResult>()
@@ -84,7 +103,7 @@ namespace ILRuntime.Runtime.Enviorment
             node.Adapter = new FunctionDelegateAdapter<T1, TResult>();
             node.ParameterTypes = new Type[] { typeof(T1), typeof(TResult) };
             functions.Add(node);
-            RegisterDelegateConvertor<Func<T1, TResult>>((dele) => dele);
+            RegisterDelegateConvertor<Func<T1, TResult>>(defaultConverter);
         }
 
         public void RegisterFunctionDelegate<T1, T2, TResult>()
@@ -93,7 +112,7 @@ namespace ILRuntime.Runtime.Enviorment
             node.Adapter = new FunctionDelegateAdapter<T1, T2, TResult>();
             node.ParameterTypes = new Type[] { typeof(T1), typeof(T2), typeof(TResult) };
             functions.Add(node);
-            RegisterDelegateConvertor<Func<T1, T2, TResult>>((dele) => dele);
+            RegisterDelegateConvertor<Func<T1, T2, TResult>>(defaultConverter);
         }
 
         public void RegisterFunctionDelegate<T1, T2, T3, TResult>()
@@ -102,7 +121,7 @@ namespace ILRuntime.Runtime.Enviorment
             node.Adapter = new FunctionDelegateAdapter<T1, T2, T3, TResult>();
             node.ParameterTypes = new Type[] { typeof(T1), typeof(T2), typeof(T3), typeof(TResult) };
             functions.Add(node);
-            RegisterDelegateConvertor<Func<T1, T2, T3, TResult>>((dele) => dele);
+            RegisterDelegateConvertor<Func<T1, T2, T3, TResult>>(defaultConverter);
         }
 
         public void RegisterFunctionDelegate<T1, T2, T3, T4, TResult>()
@@ -111,7 +130,7 @@ namespace ILRuntime.Runtime.Enviorment
             node.Adapter = new FunctionDelegateAdapter<T1, T2, T3, T4, TResult>();
             node.ParameterTypes = new Type[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(TResult) };
             functions.Add(node);
-            RegisterDelegateConvertor<Func<T1, T2, T3, T4, TResult>>((dele) => dele);
+            RegisterDelegateConvertor<Func<T1, T2, T3, T4, TResult>>(defaultConverter);
         }
 
         internal Delegate ConvertToDelegate(Type clrDelegateType, IDelegateAdapter adapter)
@@ -170,6 +189,10 @@ namespace ILRuntime.Runtime.Enviorment
                         i.ParameterType.GetClassName(out clsName, out rName, out isByRef);
                         sb.Append(rName);
                     }
+                    if (!first)
+                        sb.Append(", ");
+                    mi.ReturnType.GetClassName(out clsName, out rName, out isByRef);
+                    sb.Append(rName);
                 }
                 else
                 {
@@ -206,26 +229,68 @@ namespace ILRuntime.Runtime.Enviorment
             }
         }
 
-        internal IDelegateAdapter FindDelegateAdapter(ILTypeInstance instance, ILMethod method)
+        internal IDelegateAdapter FindDelegateAdapter(CLRType type, ILTypeInstance ins, ILMethod ilMethod)
+        {
+            IDelegateAdapter dele;
+            if (ins != null)
+            {
+                dele = (ins).GetDelegateAdapter(ilMethod);
+                if (dele == null)
+                {
+                    var invokeMethod =
+                        type.GetMethod("Invoke",
+                            ilMethod.ParameterCount);
+                    if (invokeMethod == null && ilMethod.IsExtend)
+                    {
+                        invokeMethod = type.GetMethod("Invoke", ilMethod.ParameterCount - 1);
+                    }
+                    dele = appdomain.DelegateManager.FindDelegateAdapter(
+                        ins, ilMethod, invokeMethod);
+                }
+            }
+            else
+            {
+                if (ilMethod.DelegateAdapter == null)
+                {
+                    var invokeMethod = type.GetMethod("Invoke", ilMethod.ParameterCount);
+                    ilMethod.DelegateAdapter = appdomain.DelegateManager.FindDelegateAdapter(null, ilMethod, invokeMethod);
+                }
+                dele = ilMethod.DelegateAdapter;
+            }
+            return dele;
+        }
+
+        /// <summary>
+        /// ilMethod代表的delegate会赋值给method对应的delegate，一般两者参数类型都一致，
+        /// 但新版本的支持泛型协变之后，有些时候会不一致，所以此处判断是用method判断，而不是用ilMethod判断
+        /// </summary>
+        /// <param name="instance"></param>
+        /// <param name="ilMethod"></param>
+        /// <param name="method"></param>
+        /// <returns></returns>
+        internal IDelegateAdapter FindDelegateAdapter(ILTypeInstance instance, ILMethod ilMethod, IMethod method)
         {
             IDelegateAdapter res;
+            var parameterCount = method.ParameterCount;
+            var returnTypeForCLR = method.ReturnType.TypeForCLR;
             if (method.ReturnType == appdomain.VoidType)
             {
-                if (method.ParameterCount == 0)
+                if (parameterCount == 0)
                 {
-                    res = zeroParamMethodAdapter.Instantiate(appdomain, instance, method);
+                    res = zeroParamMethodAdapter.Instantiate(appdomain, instance, ilMethod);
                     if (instance != null)
-                        instance.SetDelegateAdapter(method, res);
+                        instance.SetDelegateAdapter(ilMethod, res);
                     return res;
                 }
                 foreach (var i in methods)
                 {
-                    if (i.ParameterTypes.Length == method.ParameterCount)
+                    var parameterTypes = i.ParameterTypes;
+                    if (parameterTypes.Length == parameterCount)
                     {
                         bool match = true;
-                        for (int j = 0; j < method.ParameterCount; j++)
+                        for (int j = 0; j < parameterCount; j++)
                         {
-                            if (i.ParameterTypes[j] != method.Parameters[j].TypeForCLR)
+                            if (parameterTypes[j] != method.Parameters[j].TypeForCLR)
                             {
                                 match = false;
                                 break;
@@ -233,9 +298,9 @@ namespace ILRuntime.Runtime.Enviorment
                         }
                         if (match)
                         {
-                            res = i.Adapter.Instantiate(appdomain, instance, method);
+                            res = i.Adapter.Instantiate(appdomain, instance, ilMethod);
                             if (instance != null)
-                                instance.SetDelegateAdapter(method, res);
+                                instance.SetDelegateAdapter(ilMethod, res);
                             return res;
                         }
                     }
@@ -243,14 +308,16 @@ namespace ILRuntime.Runtime.Enviorment
             }
             else
             {
+
                 foreach (var i in functions)
                 {
-                    if (i.ParameterTypes.Length == method.ParameterCount + 1)
+                    var parameterTypes = i.ParameterTypes;
+                    if (parameterTypes.Length == parameterCount + 1)
                     {
                         bool match = true;
-                        for (int j = 0; j < method.ParameterCount; j++)
+                        for (int j = 0; j < parameterCount; j++)
                         {
-                            if (i.ParameterTypes[j] != method.Parameters[j].TypeForCLR)
+                            if (parameterTypes[j] != method.Parameters[j].TypeForCLR)
                             {
                                 match = false;
                                 break;
@@ -258,11 +325,11 @@ namespace ILRuntime.Runtime.Enviorment
                         }
                         if (match)
                         {
-                            if (method.ReturnType.TypeForCLR == i.ParameterTypes[method.ParameterCount])
+                            if (returnTypeForCLR == parameterTypes[parameterCount])
                             {
-                                res = i.Adapter.Instantiate(appdomain, instance, method);
+                                res = i.Adapter.Instantiate(appdomain, instance, ilMethod);
                                 if (instance != null)
-                                    instance.SetDelegateAdapter(method, res);
+                                    instance.SetDelegateAdapter(ilMethod, res);
                                 return res;
                             }
                         }
@@ -270,9 +337,9 @@ namespace ILRuntime.Runtime.Enviorment
                 }
             }
 
-            res = dummyAdapter.Instantiate(appdomain, instance, method);
+            res = dummyAdapter.Instantiate(appdomain, instance, ilMethod);
             if (instance != null)
-                instance.SetDelegateAdapter(method, res);
+                instance.SetDelegateAdapter(ilMethod, res);
             return res;
         }
 

@@ -1,11 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
 using ILRuntime.CLR.TypeSystem;
 using ILRuntime.CLR.Method;
+using ILRuntime.Runtime;
 using ILRuntime.Runtime.Stack;
+using ILRuntime.Other;
 using ILRuntime.Runtime.Enviorment;
 
 namespace ILRuntime.Runtime.Intepreter
@@ -15,6 +16,14 @@ namespace ILRuntime.Runtime.Intepreter
     {
         Func<TResult> action;
 
+        static InvocationTypes[] pTypes;
+        static FunctionDelegateAdapter()
+        {
+            pTypes = new InvocationTypes[]
+            {
+                InvocationContext.GetInvocationType<TResult>(),
+            };
+        }
         public FunctionDelegateAdapter()
         {
 
@@ -26,6 +35,13 @@ namespace ILRuntime.Runtime.Intepreter
             action = InvokeILMethod;
         }
 
+        public override Type NativeDelegateType
+        {
+            get
+            {
+                return typeof(Func<TResult>);
+            }
+        }
         public override Delegate Delegate
         {
             get
@@ -34,17 +50,26 @@ namespace ILRuntime.Runtime.Intepreter
             }
         }
 
-        TResult InvokeILMethod()
+        unsafe TResult InvokeILMethod()
         {
-            if (method.HasThis)
-                return (TResult)appdomain.Invoke(method, instance, null);
-            else
-                return (TResult)appdomain.Invoke(method, null, null);
+            using (var ctx = BeginInvoke())
+            {
+                var esp = ILInvoke(ctx.Intepreter, ctx.ESP, ctx.ManagedStack);
+                ctx.SetInvoked(esp); 
+                return ctx.ReadResult<TResult>(pTypes[0]);
+            }
         }
 
         public override IDelegateAdapter Instantiate(Enviorment.AppDomain appdomain, ILTypeInstance instance, ILMethod method)
         {
             return new FunctionDelegateAdapter<TResult>(appdomain, instance, method);
+        }
+
+        public override IDelegateAdapter Clone()
+        {
+            var res = new FunctionDelegateAdapter<TResult>(appdomain, instance, method);
+            res.isClone = true;
+            return res;
         }
 
         public override void Combine(Delegate dele)
@@ -62,6 +87,15 @@ namespace ILRuntime.Runtime.Intepreter
     {
         Func<T1, TResult> action;
 
+        static InvocationTypes[] pTypes;
+        static FunctionDelegateAdapter()
+        {
+            pTypes = new InvocationTypes[]
+            {
+                InvocationContext.GetInvocationType<T1>(),
+                InvocationContext.GetInvocationType<TResult>(),
+            };
+        }
         public FunctionDelegateAdapter()
         {
 
@@ -72,7 +106,13 @@ namespace ILRuntime.Runtime.Intepreter
         {
             action = InvokeILMethod;
         }
-
+        public override Type NativeDelegateType
+        {
+            get
+            {
+                return typeof(Func<T1, TResult>);
+            }
+        }
         public override Delegate Delegate
         {
             get
@@ -81,17 +121,28 @@ namespace ILRuntime.Runtime.Intepreter
             }
         }
 
-        TResult InvokeILMethod(T1 p1)
+        unsafe TResult InvokeILMethod(T1 p1)
         {
-            if (method.HasThis)
-                return (TResult)appdomain.Invoke(method, instance, p1);
-            else
-                return (TResult)appdomain.Invoke(method, null, p1);
+            using (var ctx = BeginInvoke())
+            {
+                ctx.PushParameter(pTypes[0], p1);
+
+                var esp = ILInvoke(ctx.Intepreter, ctx.ESP, ctx.ManagedStack);
+                ctx.SetInvoked(esp);
+                return ctx.ReadResult<TResult>(pTypes[1]);
+            }
         }
 
         public override IDelegateAdapter Instantiate(Enviorment.AppDomain appdomain, ILTypeInstance instance, ILMethod method)
         {
             return new FunctionDelegateAdapter<T1, TResult>(appdomain, instance, method);
+        }
+
+        public override IDelegateAdapter Clone()
+        {
+            var res = new FunctionDelegateAdapter<T1, TResult>(appdomain, instance, method);
+            res.isClone = true;
+            return res;
         }
 
         public override void Combine(Delegate dele)
@@ -109,6 +160,16 @@ namespace ILRuntime.Runtime.Intepreter
     {
         Func<T1, T2, TResult> action;
 
+        static InvocationTypes[] pTypes;
+        static FunctionDelegateAdapter()
+        {
+            pTypes = new InvocationTypes[]
+            {
+                InvocationContext.GetInvocationType<T1>(),
+                InvocationContext.GetInvocationType<T2>(),
+                InvocationContext.GetInvocationType<TResult>(),
+            };
+        }
         public FunctionDelegateAdapter()
         {
 
@@ -119,7 +180,13 @@ namespace ILRuntime.Runtime.Intepreter
         {
             action = InvokeILMethod;
         }
-
+        public override Type NativeDelegateType
+        {
+            get
+            {
+                return typeof(Func<T1, T2, TResult>);
+            }
+        }
         public override Delegate Delegate
         {
             get
@@ -128,17 +195,29 @@ namespace ILRuntime.Runtime.Intepreter
             }
         }
 
-        TResult InvokeILMethod(T1 p1, T2 p2)
+        unsafe TResult InvokeILMethod(T1 p1, T2 p2)
         {
-            if (method.HasThis)
-                return (TResult)appdomain.Invoke(method, instance, p1, p2);
-            else
-                return (TResult)appdomain.Invoke(method, null, p1, p2);
+            using (var ctx = BeginInvoke())
+            {
+                ctx.PushParameter(pTypes[0], p1);
+                ctx.PushParameter(pTypes[1], p2);
+
+                var esp = ILInvoke(ctx.Intepreter, ctx.ESP, ctx.ManagedStack);
+                ctx.SetInvoked(esp);
+                return ctx.ReadResult<TResult>(pTypes[2]);
+            }
         }
 
         public override IDelegateAdapter Instantiate(Enviorment.AppDomain appdomain, ILTypeInstance instance, ILMethod method)
         {
             return new FunctionDelegateAdapter<T1, T2, TResult>(appdomain, instance, method);
+        }
+
+        public override IDelegateAdapter Clone()
+        {
+            var res = new FunctionDelegateAdapter<T1, T2, TResult>(appdomain, instance, method);
+            res.isClone = true;
+            return res;
         }
 
         public override void Combine(Delegate dele)
@@ -156,6 +235,18 @@ namespace ILRuntime.Runtime.Intepreter
     {
         Func<T1, T2, T3, TResult> action;
 
+        static InvocationTypes[] pTypes;
+
+        static FunctionDelegateAdapter()
+        {
+            pTypes = new InvocationTypes[]
+            {
+                InvocationContext.GetInvocationType<T1>(),
+                InvocationContext.GetInvocationType<T2>(),
+                InvocationContext.GetInvocationType<T3>(),
+                InvocationContext.GetInvocationType<TResult>(),
+            };
+        }
         public FunctionDelegateAdapter()
         {
 
@@ -166,7 +257,13 @@ namespace ILRuntime.Runtime.Intepreter
         {
             action = InvokeILMethod;
         }
-
+        public override Type NativeDelegateType
+        {
+            get
+            {
+                return typeof(Func<T1, T2, T3, TResult>);
+            }
+        }
         public override Delegate Delegate
         {
             get
@@ -175,12 +272,18 @@ namespace ILRuntime.Runtime.Intepreter
             }
         }
 
-        TResult InvokeILMethod(T1 p1, T2 p2, T3 p3)
+        unsafe TResult InvokeILMethod(T1 p1, T2 p2, T3 p3)
         {
-            if (method.HasThis)
-                return (TResult)appdomain.Invoke(method, instance, p1, p2, p3);
-            else
-                return (TResult)appdomain.Invoke(method, null, p1, p2, p3);
+            using (var ctx = BeginInvoke())
+            {
+                ctx.PushParameter(pTypes[0], p1);
+                ctx.PushParameter(pTypes[1], p2);
+                ctx.PushParameter(pTypes[2], p3);
+
+                var esp = ILInvoke(ctx.Intepreter, ctx.ESP, ctx.ManagedStack);
+                ctx.SetInvoked(esp);
+                return ctx.ReadResult<TResult>(pTypes[3]);
+            }
         }
 
         public override IDelegateAdapter Instantiate(Enviorment.AppDomain appdomain, ILTypeInstance instance, ILMethod method)
@@ -188,6 +291,12 @@ namespace ILRuntime.Runtime.Intepreter
             return new FunctionDelegateAdapter<T1, T2, T3, TResult>(appdomain, instance, method);
         }
 
+        public override IDelegateAdapter Clone()
+        {
+            var res = new FunctionDelegateAdapter<T1, T2, T3, TResult>(appdomain, instance, method);
+            res.isClone = true;
+            return res;
+        }
         public override void Combine(Delegate dele)
         {
             action += (Func<T1, T2, T3, TResult>)dele;
@@ -203,6 +312,19 @@ namespace ILRuntime.Runtime.Intepreter
     {
         Func<T1, T2, T3, T4, TResult> action;
 
+        static InvocationTypes[] pTypes;
+
+        static FunctionDelegateAdapter()
+        {
+            pTypes = new InvocationTypes[]
+            {
+                InvocationContext.GetInvocationType<T1>(),
+                InvocationContext.GetInvocationType<T2>(),
+                InvocationContext.GetInvocationType<T3>(),
+                InvocationContext.GetInvocationType<T4>(),
+                InvocationContext.GetInvocationType<TResult>(),
+            };
+        }
         public FunctionDelegateAdapter()
         {
 
@@ -213,7 +335,13 @@ namespace ILRuntime.Runtime.Intepreter
         {
             action = InvokeILMethod;
         }
-
+        public override Type NativeDelegateType
+        {
+            get
+            {
+                return typeof(Func<T1, T2, T3, T4, TResult>);
+            }
+        }
         public override Delegate Delegate
         {
             get
@@ -222,17 +350,31 @@ namespace ILRuntime.Runtime.Intepreter
             }
         }
 
-        TResult InvokeILMethod(T1 p1, T2 p2, T3 p3, T4 p4)
+        unsafe TResult InvokeILMethod(T1 p1, T2 p2, T3 p3, T4 p4)
         {
-            if (method.HasThis)
-                return (TResult)appdomain.Invoke(method, instance, p1, p2, p3, p4);
-            else
-                return (TResult)appdomain.Invoke(method, null, p1, p2, p3, p4);
+            using (var ctx = BeginInvoke())
+            {
+                ctx.PushParameter(pTypes[0], p1);
+                ctx.PushParameter(pTypes[1], p2);
+                ctx.PushParameter(pTypes[2], p3);
+                ctx.PushParameter(pTypes[3], p4);
+
+                var esp = ILInvoke(ctx.Intepreter, ctx.ESP, ctx.ManagedStack);
+                ctx.SetInvoked(esp);
+                return ctx.ReadResult<TResult>(pTypes[4]);
+            }
         }
 
         public override IDelegateAdapter Instantiate(Enviorment.AppDomain appdomain, ILTypeInstance instance, ILMethod method)
         {
             return new FunctionDelegateAdapter<T1, T2, T3, T4, TResult>(appdomain, instance, method);
+        }
+
+        public override IDelegateAdapter Clone()
+        {
+            var res = new FunctionDelegateAdapter<T1, T2, T3, T4, TResult>(appdomain, instance, method);
+            res.isClone = true;
+            return res;
         }
 
         public override void Combine(Delegate dele)
@@ -251,10 +393,16 @@ namespace ILRuntime.Runtime.Intepreter
     class MethodDelegateAdapter<T1> : DelegateAdapter
     {
         Action<T1> action;
+        static InvocationTypes pType;
+
+        static MethodDelegateAdapter()
+        {
+            pType = InvocationContext.GetInvocationType<T1>();
+        }
 
         public MethodDelegateAdapter()
         {
-
+            
         }
 
         private MethodDelegateAdapter(Enviorment.AppDomain appdomain, ILTypeInstance instance, ILMethod method)
@@ -263,6 +411,13 @@ namespace ILRuntime.Runtime.Intepreter
             action = InvokeILMethod;
         }
 
+        public override Type NativeDelegateType
+        {
+            get
+            {
+                return typeof(Action<T1>);
+            }
+        }
         public override Delegate Delegate
         {
             get
@@ -271,17 +426,25 @@ namespace ILRuntime.Runtime.Intepreter
             }
         }
 
-        void InvokeILMethod(T1 p1)
+        unsafe void InvokeILMethod(T1 p1)
         {
-            if (method.HasThis)
-                appdomain.Invoke(method, instance, p1);
-            else
-                appdomain.Invoke(method, null, p1);
+            using (var ctx = BeginInvoke())
+            {
+                ctx.PushParameter(pType, p1);
+                ILInvoke(ctx.Intepreter, ctx.ESP, ctx.ManagedStack);
+            }
         }
 
         public override IDelegateAdapter Instantiate(Enviorment.AppDomain appdomain, ILTypeInstance instance, ILMethod method)
         {
             return new MethodDelegateAdapter<T1>(appdomain, instance, method);
+        }
+
+        public override IDelegateAdapter Clone()
+        {
+            var res = new MethodDelegateAdapter<T1>(appdomain, instance, method);
+            res.isClone = true;
+            return res;
         }
 
         public override void Combine(Delegate dele)
@@ -299,6 +462,16 @@ namespace ILRuntime.Runtime.Intepreter
     {
         Action<T1, T2> action;
 
+        static InvocationTypes[] pTypes;
+
+        static MethodDelegateAdapter()
+        {
+            pTypes = new InvocationTypes[]
+            {
+                InvocationContext.GetInvocationType<T1>(),
+                InvocationContext.GetInvocationType<T2>(),
+            };
+        }
         public MethodDelegateAdapter()
         {
 
@@ -309,7 +482,13 @@ namespace ILRuntime.Runtime.Intepreter
         {
             action = InvokeILMethod;
         }
-
+        public override Type NativeDelegateType
+        {
+            get
+            {
+                return typeof(Action<T1, T2>);
+            }
+        }
         public override Delegate Delegate
         {
             get
@@ -318,17 +497,26 @@ namespace ILRuntime.Runtime.Intepreter
             }
         }
 
-        void InvokeILMethod(T1 p1, T2 p2)
+        unsafe void InvokeILMethod(T1 p1, T2 p2)
         {
-            if (method.HasThis)
-                appdomain.Invoke(method, instance, p1, p2);
-            else
-                appdomain.Invoke(method, instance, p1, p2);
+            using (var ctx = BeginInvoke())
+            {
+                ctx.PushParameter(pTypes[0], p1);
+                ctx.PushParameter(pTypes[1], p2);
+                ILInvoke(ctx.Intepreter, ctx.ESP, ctx.ManagedStack);
+            }
         }
 
         public override IDelegateAdapter Instantiate(Enviorment.AppDomain appdomain, ILTypeInstance instance, ILMethod method)
         {
             return new MethodDelegateAdapter<T1, T2>(appdomain, instance, method);
+        }
+
+        public override IDelegateAdapter Clone()
+        {
+            var res = new MethodDelegateAdapter<T1, T2>(appdomain, instance, method);
+            res.isClone = true;
+            return res;
         }
 
         public override void Combine(Delegate dele)
@@ -346,6 +534,17 @@ namespace ILRuntime.Runtime.Intepreter
     {
         Action<T1, T2, T3> action;
 
+        static InvocationTypes[] pTypes;
+
+        static MethodDelegateAdapter()
+        {
+            pTypes = new InvocationTypes[]
+            {
+                InvocationContext.GetInvocationType<T1>(),
+                InvocationContext.GetInvocationType<T2>(),
+                InvocationContext.GetInvocationType<T3>(),
+            };
+        }
         public MethodDelegateAdapter()
         {
 
@@ -356,7 +555,13 @@ namespace ILRuntime.Runtime.Intepreter
         {
             action = InvokeILMethod;
         }
-
+        public override Type NativeDelegateType
+        {
+            get
+            {
+                return typeof(Action<T1, T2, T3>);
+            }
+        }
         public override Delegate Delegate
         {
             get
@@ -365,17 +570,27 @@ namespace ILRuntime.Runtime.Intepreter
             }
         }
 
-        void InvokeILMethod(T1 p1, T2 p2, T3 p3)
+        unsafe void InvokeILMethod(T1 p1, T2 p2, T3 p3)
         {
-            if (method.HasThis)
-                appdomain.Invoke(method, instance, p1, p2, p3);
-            else
-                appdomain.Invoke(method, null, p1, p2, p3);
+            using (var ctx = BeginInvoke())
+            {
+                ctx.PushParameter(pTypes[0], p1);
+                ctx.PushParameter(pTypes[1], p2);
+                ctx.PushParameter(pTypes[2], p3);
+                ILInvoke(ctx.Intepreter, ctx.ESP, ctx.ManagedStack);
+            }
         }
 
         public override IDelegateAdapter Instantiate(Enviorment.AppDomain appdomain, ILTypeInstance instance, ILMethod method)
         {
             return new MethodDelegateAdapter<T1, T2, T3>(appdomain, instance, method);
+        }
+
+        public override IDelegateAdapter Clone()
+        {
+            var res = new MethodDelegateAdapter<T1, T2, T3>(appdomain, instance, method);
+            res.isClone = true;
+            return res;
         }
 
         public override void Combine(Delegate dele)
@@ -393,6 +608,18 @@ namespace ILRuntime.Runtime.Intepreter
     {
         Action<T1, T2, T3, T4> action;
 
+        static InvocationTypes[] pTypes;
+
+        static MethodDelegateAdapter()
+        {
+            pTypes = new InvocationTypes[]
+            {
+                InvocationContext.GetInvocationType<T1>(),
+                InvocationContext.GetInvocationType<T2>(),
+                InvocationContext.GetInvocationType<T3>(),
+                InvocationContext.GetInvocationType<T4>(),
+            };
+        }
         public MethodDelegateAdapter()
         {
 
@@ -403,7 +630,13 @@ namespace ILRuntime.Runtime.Intepreter
         {
             action = InvokeILMethod;
         }
-
+        public override Type NativeDelegateType
+        {
+            get
+            {
+                return typeof(Action<T1, T2, T3, T4>);
+            }
+        }
         public override Delegate Delegate
         {
             get
@@ -412,17 +645,28 @@ namespace ILRuntime.Runtime.Intepreter
             }
         }
 
-        void InvokeILMethod(T1 p1, T2 p2, T3 p3, T4 p4)
+        unsafe void InvokeILMethod(T1 p1, T2 p2, T3 p3, T4 p4)
         {
-            if (method.HasThis)
-                appdomain.Invoke(method, instance, p1, p2, p3, p4);
-            else
-                appdomain.Invoke(method, null, p1, p2, p3, p4);
+            using (var ctx = BeginInvoke())
+            {
+                ctx.PushParameter(pTypes[0], p1);
+                ctx.PushParameter(pTypes[1], p2);
+                ctx.PushParameter(pTypes[2], p3);
+                ctx.PushParameter(pTypes[3], p4);
+                ILInvoke(ctx.Intepreter, ctx.ESP, ctx.ManagedStack);
+            }
         }
 
         public override IDelegateAdapter Instantiate(Enviorment.AppDomain appdomain, ILTypeInstance instance, ILMethod method)
         {
             return new MethodDelegateAdapter<T1, T2, T3, T4>(appdomain, instance, method);
+        }
+
+        public override IDelegateAdapter Clone()
+        {
+            var res = new MethodDelegateAdapter<T1, T2, T3, T4>(appdomain, instance, method);
+            res.isClone = true;
+            return res;
         }
 
         public override void Combine(Delegate dele)
@@ -435,6 +679,86 @@ namespace ILRuntime.Runtime.Intepreter
             action -= (Action<T1, T2, T3, T4>)dele;
         }
     }
+
+#if NET_4_6 || NET_STANDARD_2_0
+    class MethodDelegateAdapter<T1, T2, T3, T4, T5> : DelegateAdapter
+    {
+        Action<T1, T2, T3, T4, T5> action;
+
+        static InvocationTypes[] pTypes;
+
+        static MethodDelegateAdapter()
+        {
+            pTypes = new InvocationTypes[]
+            {
+                InvocationContext.GetInvocationType<T1>(),
+                InvocationContext.GetInvocationType<T2>(),
+                InvocationContext.GetInvocationType<T3>(),
+                InvocationContext.GetInvocationType<T4>(),
+                InvocationContext.GetInvocationType<T5>(),
+            };
+        }
+        public MethodDelegateAdapter()
+        {
+
+        }
+
+        private MethodDelegateAdapter(Enviorment.AppDomain appdomain, ILTypeInstance instance, ILMethod method)
+            : base(appdomain, instance, method)
+        {
+            action = InvokeILMethod;
+        }
+        public override Type NativeDelegateType
+        {
+            get
+            {
+                return typeof(Action<T1, T2, T3, T4, T5>);
+            }
+        }
+        public override Delegate Delegate
+        {
+            get
+            {
+                return action;
+            }
+        }
+
+        unsafe void InvokeILMethod(T1 p1, T2 p2, T3 p3, T4 p4, T5 p5)
+        {
+            using (var ctx = BeginInvoke())
+            {
+                ctx.PushParameter(pTypes[0], p1);
+                ctx.PushParameter(pTypes[1], p2);
+                ctx.PushParameter(pTypes[2], p3);
+                ctx.PushParameter(pTypes[3], p4);
+                ctx.PushParameter(pTypes[4], p5);
+                ILInvoke(ctx.Intepreter, ctx.ESP, ctx.ManagedStack);
+            }
+        }
+
+        public override IDelegateAdapter Instantiate(Enviorment.AppDomain appdomain, ILTypeInstance instance, ILMethod method)
+        {
+            return new MethodDelegateAdapter<T1, T2, T3, T4, T5>(appdomain, instance, method);
+        }
+
+        public override IDelegateAdapter Clone()
+        {
+            var res = new MethodDelegateAdapter<T1, T2, T3, T4, T5>(appdomain, instance, method);
+            res.isClone = true;
+            return res;
+        }
+
+        public override void Combine(Delegate dele)
+        {
+            action += (Action<T1, T2, T3, T4, T5>)dele;
+        }
+
+        public override void Remove(Delegate dele)
+        {
+            action -= (Action<T1, T2, T3, T4, T5>)dele;
+        }
+    }
+#endif
 
     class MethodDelegateAdapter : DelegateAdapter
     {
@@ -450,7 +774,13 @@ namespace ILRuntime.Runtime.Intepreter
         {
             action = InvokeILMethod;
         }
-
+        public override Type NativeDelegateType
+        {
+            get
+            {
+                return typeof(Action);
+            }
+        }
         public override Delegate Delegate
         {
             get
@@ -459,17 +789,24 @@ namespace ILRuntime.Runtime.Intepreter
             }
         }
 
-        void InvokeILMethod()
+        unsafe void InvokeILMethod()
         {
-            if (method.HasThis)
-                appdomain.Invoke(method, instance, null);
-            else
-                appdomain.Invoke(method, null, null);
+            using(var ctx = BeginInvoke())
+            {
+                ILInvoke(ctx.Intepreter, ctx.ESP, ctx.ManagedStack);
+            }
         }
 
         public override IDelegateAdapter Instantiate(Enviorment.AppDomain appdomain, ILTypeInstance instance, ILMethod method)
         {
             return new MethodDelegateAdapter(appdomain, instance, method);
+        }
+
+        public override IDelegateAdapter Clone()
+        {
+            var res = new MethodDelegateAdapter(appdomain, instance, method);
+            res.isClone = true;
+            return res;
         }
 
         public override void Combine(Delegate dele)
@@ -495,7 +832,13 @@ namespace ILRuntime.Runtime.Intepreter
         {
             
         }
-
+        public override Type NativeDelegateType
+        {
+            get
+            {
+                throw new NotSupportedException();
+            }
+        }
         public override Delegate Delegate
         {
             get
@@ -518,6 +861,13 @@ namespace ILRuntime.Runtime.Intepreter
             return new DummyDelegateAdapter(appdomain, instance, method);
         }
 
+        public override IDelegateAdapter Clone()
+        {
+            var res = new DummyDelegateAdapter(appdomain, instance, method);
+            res.isClone = true;
+            return res;
+        }
+
         public override void Combine(Delegate dele)
         {
             ThrowAdapterNotFound(method);
@@ -529,6 +879,7 @@ namespace ILRuntime.Runtime.Intepreter
         }
     }
     #endregion
+
     abstract class DelegateAdapter : ILTypeInstance, IDelegateAdapter
     {
         protected ILMethod method;
@@ -536,8 +887,11 @@ namespace ILRuntime.Runtime.Intepreter
         protected Enviorment.AppDomain appdomain;
         Dictionary<Type, Delegate> converters;
         IDelegateAdapter next;
+        protected bool isClone;
 
         public abstract Delegate Delegate { get; }
+
+        public abstract Type NativeDelegateType { get; }
 
         public IDelegateAdapter Next { get { return next; } }
 
@@ -563,26 +917,46 @@ namespace ILRuntime.Runtime.Intepreter
             }
         }
 
-        public unsafe StackObject* ILInvoke(ILIntepreter intp, StackObject* esp, List<object> mStack)
+        unsafe protected InvocationContext BeginInvoke()
+        {
+            var ctx = appdomain.BeginInvoke(method);
+            *ctx.ESP = default(StackObject);
+            ctx.ESP++;//required to simulate delegate invocation
+            return ctx;
+        }
+
+        public unsafe StackObject* ILInvoke(ILIntepreter intp, StackObject* esp, IList<object> mStack)
         {
             var ebp = esp;
             esp = ILInvokeSub(intp, esp, mStack);
             return ClearStack(intp, esp, ebp, mStack);
         }
 
-        unsafe StackObject* ILInvokeSub(ILIntepreter intp, StackObject* esp, List<object> mStack)
+        unsafe StackObject* ILInvokeSub(ILIntepreter intp, StackObject* esp, IList<object> mStack)
         {
             var ebp = esp;
             bool unhandled;
             if (method.HasThis)
                 esp = ILIntepreter.PushObject(esp, mStack, instance);
             int paramCnt = method.ParameterCount;
-            for(int i = paramCnt; i > 0; i--)
+            if (method.IsExtend && instance != null)
+            {
+                esp = ILIntepreter.PushObject(esp, mStack, instance);
+                paramCnt--;
+            }
+            bool useRegister = method.ShouldUseRegisterVM;
+            for (int i = paramCnt; i > 0; i--)
             {
                 intp.CopyToStack(esp, Minus(ebp, i), mStack);
+                if (esp->ObjectType < ObjectTypes.Object && useRegister)
+                    mStack.Add(null);
                 esp++;
             }
-            var ret = intp.Execute(method, esp, out unhandled);
+            StackObject* ret;
+            if (useRegister)
+                ret = intp.ExecuteR(method, esp, out unhandled);
+            else
+                ret = intp.Execute(method, esp, out unhandled);
             if (next != null)
             {
                 if (method.ReturnType != appdomain.VoidType)
@@ -596,9 +970,13 @@ namespace ILRuntime.Runtime.Intepreter
             return ret;
         }
 
-        unsafe StackObject* ClearStack(ILIntepreter intp, StackObject* esp, StackObject* ebp, List<object> mStack)
+        unsafe StackObject* ClearStack(ILIntepreter intp, StackObject* esp, StackObject* ebp, IList<object> mStack)
         {
             int paramCnt = method.ParameterCount;
+            if (method.IsExtend && instance != null)//如果是拓展方法，退一位
+            {
+                paramCnt--;
+            }
             object retObj = null;
             StackObject retSObj = StackObject.Null;
             bool hasReturn = method.ReturnType != appdomain.VoidType;
@@ -609,8 +987,15 @@ namespace ILRuntime.Runtime.Intepreter
                 if(ret->ObjectType>= ObjectTypes.Object)
                 {
                     retObj = mStack[ret->Value];
+                    if(retObj == null)
+                    {
+                        retSObj.ObjectType = ObjectTypes.Null;
+                        retSObj.Value = -1;
+                        retSObj.ValueLow = 0;
+                    }
+
+                    intp.Free(ret);
                 }
-                intp.Free(ret);
             }
             for (int i = 1; i <= paramCnt; i++)
             {
@@ -632,6 +1017,16 @@ namespace ILRuntime.Runtime.Intepreter
         }
 
         public abstract IDelegateAdapter Instantiate(Enviorment.AppDomain appdomain, ILTypeInstance instance, ILMethod method);
+
+        public new abstract IDelegateAdapter Clone();
+
+        public bool IsClone
+        {
+            get
+            {
+                return isClone;
+            }
+        }
 
         public virtual void Combine(IDelegateAdapter adapter)
         {
@@ -663,13 +1058,20 @@ namespace ILRuntime.Runtime.Intepreter
             if (adapter is DelegateAdapter)
             {
                 DelegateAdapter b = (DelegateAdapter)adapter;
-                if (adapter is DummyDelegateAdapter)
-                    return instance == b.instance && next == b.next && method == b.method;
-                else
-                    return instance == b.instance && next == b.next && method == b.method && Delegate == b.Delegate;
+                return instance == b.instance && method == b.method;
             }
             else
                 return false;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is DelegateAdapter)
+            {
+                DelegateAdapter b = (DelegateAdapter)obj;
+                return instance == b.instance && method == b.method;
+            }
+            return false;
         }
 
         public virtual bool Equals(Delegate dele)
@@ -677,15 +1079,70 @@ namespace ILRuntime.Runtime.Intepreter
             return Delegate == dele;
         }
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
         public override string ToString()
         {
             return method.ToString();
         }
 
+        public override bool CanAssignTo(IType type)
+        {
+            if (type.IsDelegate)
+            {
+                var method_count = method.IsExtend ? method.ParameterCount - 1 : method.ParameterCount;
+                var im = type.GetMethod("Invoke", method_count);
+                if (im == null)
+                {
+                    return false;
+                }
+                var ret_type = im.ReturnType;
+                if (im.ReturnType != appdomain.VoidType && type.IsGenericInstance)
+                {
+                    ret_type = type.GenericArguments[im.ParameterCount].Value;
+                }
+                if (im.IsDelegateInvoke)
+                {
+                    if (im.ParameterCount == method_count && ret_type == method.ReturnType)
+                    {
+                            
+                            for (int i = 0; i < im.ParameterCount; i++)
+                            {
+                                var index = method.IsExtend ? i + 1 : i;
+                                if (type.IsGenericInstance)
+                                {
+                                    if (method.Parameters[index] != type.GenericArguments[i].Value)
+                                    {
+                                        return false;
+                                    }
+                                }
+                                else
+                                {
+                                    if (im.Parameters[i] != method.Parameters[index])
+                                        return false;
+                                }
+                              
+                            }
+
+                        return true;
+                    }
+                    else
+                        return false;
+                }
+                else
+                    return false;
+            }
+            else
+                return false;
+        }
+
         public Delegate GetConvertor(Type type)
         {
             if (converters == null)
-                converters = new Dictionary<System.Type, Delegate>();
+                converters = new Dictionary<System.Type, Delegate>(new ByReferenceKeyComparer<Type>());
             Delegate res;
             if (converters.TryGetValue(type, out res))
                 return res;
@@ -707,6 +1164,8 @@ namespace ILRuntime.Runtime.Intepreter
             StringBuilder sb = new StringBuilder();
             sb.Append("Cannot find Delegate Adapter for:");
             sb.Append(method.ToString());
+            string clsName, rName;
+            bool isByRef;
             if (method.ReturnType.Name != "Void" || method.ParameterCount > 0)
             {
                 sb.AppendLine(", Please add following code:");
@@ -723,10 +1182,11 @@ namespace ILRuntime.Runtime.Intepreter
                         else
                         {
                             sb.Append(", ");
-                        }                        
-                        sb.Append(i.TypeForCLR.FullName);
+                        }
+                        i.TypeForCLR.GetClassName(out clsName, out rName, out isByRef);
+                        sb.Append(rName);                        
                     }
-                    sb.AppendLine(">");
+                    sb.AppendLine(">();");
                 }
                 else
                 {
@@ -742,12 +1202,14 @@ namespace ILRuntime.Runtime.Intepreter
                         {
                             sb.Append(", ");
                         }
-                        sb.Append(i.TypeForCLR.FullName);
+                        i.TypeForCLR.GetClassName(out clsName, out rName, out isByRef);
+                        sb.Append(rName);
                     }
                     if (!first)
                         sb.Append(", ");
-                    sb.Append(method.ReturnType.TypeForCLR.FullName);
-                    sb.AppendLine(">");
+                    method.ReturnType.TypeForCLR.GetClassName(out clsName, out rName, out isByRef);
+                    sb.Append(rName);
+                    sb.AppendLine(">();");
                 }
             }
             throw new KeyNotFoundException(sb.ToString());
@@ -755,13 +1217,15 @@ namespace ILRuntime.Runtime.Intepreter
     }
 
     unsafe interface IDelegateAdapter
-    {
+    {        Type NativeDelegateType { get; }
         Delegate Delegate { get; }
         IDelegateAdapter Next { get; }
         ILTypeInstance Instance { get; }
         ILMethod Method { get; }
-        StackObject* ILInvoke(ILIntepreter intp, StackObject* esp, List<object> mStack);
+        StackObject* ILInvoke(ILIntepreter intp, StackObject* esp, IList<object> mStack);
         IDelegateAdapter Instantiate(Enviorment.AppDomain appdomain, ILTypeInstance instance, ILMethod method);
+        bool IsClone { get; }
+        IDelegateAdapter Clone();
         Delegate GetConvertor(Type type);
         void Combine(IDelegateAdapter adapter);
         void Combine(Delegate dele);

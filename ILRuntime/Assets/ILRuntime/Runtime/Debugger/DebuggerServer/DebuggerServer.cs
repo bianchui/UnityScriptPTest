@@ -10,12 +10,14 @@ using ILRuntime.Runtime.Debugger.Protocol;
 
 namespace ILRuntime.Runtime.Debugger
 {
+#pragma warning disable
     public class DebuggerServer
     {
-        public const int Version = 1;
+        public const int Version = 2;
         TcpListener listener;
         //HashSet<Session<T>> clients = new HashSet<Session<T>>();
         bool isUp = false;
+        bool shutdown = false;
         int maxNewConnections = 1;
         int port;
         Thread mainLoop;
@@ -41,6 +43,7 @@ namespace ILRuntime.Runtime.Debugger
 
         public virtual bool Start()
         {
+            shutdown = false;
             mainLoop = new Thread(new ThreadStart(this.NetworkLoop));
             mainLoop.Start();
 
@@ -57,15 +60,17 @@ namespace ILRuntime.Runtime.Debugger
         public virtual void Stop()
         {
             isUp = false;
+            shutdown = true;
             if (this.listener != null)
                 this.listener.Stop();
-            mainLoop.Abort();
             mainLoop = null;
+            if (clientSocket != null)
+                clientSocket.Close();
         }
 
         void NetworkLoop()
         {
-            while (true)
+            while (!shutdown)
             {
                 try
                 {
@@ -127,6 +132,7 @@ namespace ILRuntime.Runtime.Debugger
                     {
                         CSBindBreakpoint msg = new Protocol.CSBindBreakpoint();
                         msg.BreakpointHashCode = br.ReadInt32();
+                        msg.IsLambda = br.ReadBoolean();
                         msg.TypeName = br.ReadString();
                         msg.MethodName = br.ReadString();
                         msg.StartLine = br.ReadInt32();
@@ -159,9 +165,59 @@ namespace ILRuntime.Runtime.Debugger
                 case DebugMessageType.CSResolveVariable:
                     {
                         CSResolveVariable msg = new CSResolveVariable();
-                        msg.Name = br.ReadString();
-                        msg.Parent = ReadVariableReference(br);
-                        var info = ds.ResolveVariable(msg.Parent, msg.Name);
+                        msg.ThreadHashCode = br.ReadInt32();
+                        msg.Variable = ReadVariableReference(br);
+                        VariableInfo info;
+                        try
+                        {
+                            object res;
+                            info = ds.ResolveVariable(msg.ThreadHashCode, msg.Variable, out res);
+                        }
+                        catch (Exception ex)
+                        {
+                            info = VariableInfo.GetException(ex);
+                        }
+                        if (info.Type != VariableTypes.Pending)
+                            SendSCResolveVariableResult(info);
+                    }
+                    break;
+                case DebugMessageType.CSResolveIndexAccess:
+                    {
+                        CSResolveIndexer msg = new CSResolveIndexer();
+                        msg.ThreadHashCode = br.ReadInt32();
+                        msg.Body = ReadVariableReference(br);
+                        msg.Index = ReadVariableReference(br);
+
+                        VariableInfo info;
+                        try
+                        {
+                            object res;
+                            info = ds.ResolveIndexAccess(msg.ThreadHashCode, msg.Body, msg.Index, out res);
+                        }
+                        catch(Exception ex)
+                        {
+                            info = VariableInfo.GetException(ex);
+                        }
+                        if (info.Type != VariableTypes.Pending)
+                            SendSCResolveVariableResult(info);
+                    }
+                    break;
+                case DebugMessageType.CSEnumChildren:
+                    {
+                        int thId = br.ReadInt32();
+                        var parent = ReadVariableReference(br);
+
+                        VariableInfo[] info = null;
+                        try
+                        {
+                            info = ds.EnumChildren(thId, parent);
+                        }
+                        catch(Exception ex)
+                        {
+                            info = new VariableInfo[] { VariableInfo.GetException(ex) };
+                        }
+                        if (info != null)
+                            SendSCEnumChildrenResult(info);
                     }
                     break;
             }
@@ -177,7 +233,14 @@ namespace ILRuntime.Runtime.Debugger
                 res.Address = br.ReadInt64();
                 res.Type = (VariableTypes)br.ReadByte();
                 res.Offset = br.ReadInt32();
+                res.Name = br.ReadString();
                 res.Parent = ReadVariableReference(br);
+                int cnt = br.ReadInt32();
+                res.Parameters = new VariableReference[cnt];
+                for(int i = 0; i < cnt; i++)
+                {
+                    res.Parameters[i] = ReadVariableReference(br);
+                }
             }
             return res;
         }
@@ -203,48 +266,153 @@ namespace ILRuntime.Runtime.Debugger
                 clientSocket.Send(type, sendStream.GetBuffer(), (int)sendStream.Position);
         }
 
+        bool CheckCompilerGeneratedStateMachine(ILMethod ilm, Enviorment.AppDomain domain,int startLine, out ILMethod found)
+        {
+            var mDef = ilm.Definition;
+            Mono.Cecil.CustomAttribute ca = null;
+            found = null;
+            foreach (var attr in mDef.CustomAttributes)
+            {
+                switch (attr.AttributeType.FullName)
+                {
+                    case "System.Runtime.CompilerServices.AsyncStateMachineAttribute":
+                    case "System.Runtime.CompilerServices.IteratorStateMachineAttribute":
+                        ca = attr;
+                        break;
+
+                }
+            }
+            if (ca != null)
+            {
+                if (ca.ConstructorArguments.Count > 0)
+                {
+                    var smType = domain.GetType(ca.ConstructorArguments[0].Value, null, null);
+                    if (smType != null)
+                    {
+                        ilm = smType.GetMethod("MoveNext", 0, true) as ILMethod;
+                        if (ilm != null && ilm.StartLine <= (startLine + 1) && ilm.EndLine >= (startLine + 1))
+                        {
+                            found = ilm;
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
         void TryBindBreakpoint(CSBindBreakpoint msg)
         {
             var domain = ds.AppDomain;
             SCBindBreakpointResult res = new Protocol.SCBindBreakpointResult();
             res.BreakpointHashCode = msg.BreakpointHashCode;
             IType type;
-            if (domain.LoadedTypes.TryGetValue(msg.TypeName, out type))
+            if (msg.IsLambda)
             {
-                if(type is ILType)
+                ILMethod found = null;
+                foreach (var i in domain.LoadedTypes.ToArray())
                 {
-                    ILType it = (ILType)type;
-                    ILMethod found = null;
-                    foreach(var i in it.GetMethods())
+                    var vt = i.Value as ILType;
+                    if (vt != null)
                     {
-                        if(i.Name == msg.MethodName)
+                        if (vt.FullName.Contains(msg.TypeName))
                         {
-                            ILMethod ilm = (ILMethod)i;
-                            if (ilm.StartLine <= (msg.StartLine + 1) && ilm.EndLine >= (msg.StartLine + 1))
+                            foreach (var j in vt.GetMethods())
                             {
-                                found = ilm;
-                                break;
+                                if (j.Name.Contains(string.Format("<{0}>", msg.MethodName)))
+                                {
+                                    ILMethod ilm = (ILMethod)j;
+                                    if (ilm.StartLine <= (msg.StartLine + 1) && ilm.EndLine >= (msg.StartLine + 1))
+                                    {
+                                        found = ilm;
+                                        break;
+                                    }
+                                    else if (CheckCompilerGeneratedStateMachine(ilm, domain, msg.StartLine, out found))
+                                    {
+                                        break;
+                                    }
+                                }
                             }
                         }
                     }
-                    if(found != null)
+                    if (found != null)
+                        break;
+                }
+                if (found != null)
+                {
+                    ds.SetBreakPoint(found.GetHashCode(), msg.BreakpointHashCode, msg.StartLine);
+                    res.Result = BindBreakpointResults.OK;
+                }
+                else
+                {
+                    res.Result = BindBreakpointResults.CodeNotFound;
+                }
+            }
+            else
+            {
+                if (domain.LoadedTypes.TryGetValue(msg.TypeName, out type))
+                {
+                    if (type is ILType)
                     {
-                        ds.SetBreakPoint(found.GetHashCode(), msg.BreakpointHashCode, msg.StartLine);
-                        res.Result = BindBreakpointResults.OK;
+                        ILType it = (ILType)type;
+                        ILMethod found = null;
+                        if (msg.MethodName == ".ctor")
+                        {
+                            foreach (var i in it.GetConstructors())
+                            {
+                                ILMethod ilm = (ILMethod)i;
+                                if (ilm.StartLine <= (msg.StartLine + 1) && ilm.EndLine >= (msg.StartLine + 1))
+                                {
+                                    found = ilm;
+                                    break;
+                                }
+                            }
+                        }
+                        else if (msg.MethodName == ".cctor")
+                        {
+                            ILMethod ilm = it.GetStaticConstroctor() as ILMethod;
+                            if (ilm.StartLine <= (msg.StartLine + 1) && ilm.EndLine >= (msg.StartLine + 1))
+                            {
+                                found = ilm;
+                            }
+                        }
+                        else
+                        {
+                            foreach (var i in it.GetMethods())
+                            {
+                                if (i.Name == msg.MethodName)
+                                {
+                                    ILMethod ilm = (ILMethod)i;
+                                    if (ilm.StartLine <= (msg.StartLine + 1) && ilm.EndLine >= (msg.StartLine + 1))
+                                    {
+                                        found = ilm;
+                                        break;
+                                    }
+                                    else if(CheckCompilerGeneratedStateMachine(ilm, domain, msg.StartLine, out found))
+                                    {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (found != null)
+                        {
+                            ds.SetBreakPoint(found.GetHashCode(), msg.BreakpointHashCode, msg.StartLine);
+                            res.Result = BindBreakpointResults.OK;
+                        }
+                        else
+                        {
+                            res.Result = BindBreakpointResults.CodeNotFound;
+                        }
                     }
                     else
                     {
-                        res.Result = BindBreakpointResults.CodeNotFound;
+                        res.Result = BindBreakpointResults.TypeNotFound;
                     }
                 }
                 else
                 {
                     res.Result = BindBreakpointResults.TypeNotFound;
                 }
-            }
-            else
-            {
-                res.Result = BindBreakpointResults.TypeNotFound;
             }
             SendSCBindBreakpointResult(res);
         }
@@ -274,11 +442,33 @@ namespace ILRuntime.Runtime.Debugger
             DoSend(DebugMessageType.SCStepComplete);
         }
 
-        void SendSCResolveVariableResult(VariableInfo info)
+        internal void SendSCResolveVariableResult(VariableInfo info)
         {
-            sendStream.Position = 0;
-            WriteVariableInfo(info);
-            DoSend(DebugMessageType.SCResolveVariableResult);
+            lock (this)
+            {
+                sendStream.Position = 0;
+                WriteVariableInfo(info);
+                DoSend(DebugMessageType.SCResolveVariableResult);
+            }
+        }
+
+        internal void SendSCEnumChildrenResult(VariableInfo[] info)
+        {
+            lock (this)
+            {
+                sendStream.Position = 0;
+                if (info != null)
+                {
+                    bw.Write(info.Length);
+                    for (int i = 0; i < info.Length; i++)
+                    {
+                        WriteVariableInfo(info[i]);
+                    }
+                }
+                else
+                    bw.Write(0);
+                DoSend(DebugMessageType.SCEnumChildrenResult);
+            }
         }
 
         void WriteStackFrames(KeyValuePair<int, StackFrameInfo[]>[] info)
@@ -312,8 +502,11 @@ namespace ILRuntime.Runtime.Debugger
             bw.Write(k.Offset);
             bw.Write(k.Name);
             bw.Write(k.Value);
+            bw.Write((byte)k.ValueType);
             bw.Write(k.TypeName);
             bw.Write(k.Expandable);
+            bw.Write(k.IsPrivate);
+            bw.Write(k.IsProtected);
         }
 
         internal void SendSCThreadStarted(int threadHash)

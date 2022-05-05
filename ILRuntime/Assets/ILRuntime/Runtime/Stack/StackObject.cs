@@ -8,6 +8,8 @@ using ILRuntime.Runtime.Enviorment;
 using ILRuntime.Runtime.Intepreter;
 namespace ILRuntime.Runtime.Stack
 {
+#pragma warning disable CS0660
+#pragma warning disable CS0661
     [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
     public struct StackObject
     {
@@ -16,8 +18,18 @@ namespace ILRuntime.Runtime.Stack
         public int Value;
         public int ValueLow;
 
+        public static bool operator ==(StackObject a, StackObject b)
+        {
+            return (a.ObjectType == b.ObjectType) && (a.Value == b.Value) && (a.ValueLow == b.ValueLow);
+        }
+
+        public static bool operator !=(StackObject a, StackObject b)
+        {
+            return (a.ObjectType != b.ObjectType) || (a.Value != b.Value) || (a.ValueLow == b.ValueLow);
+        }
+
         //IL2CPP can't process esp->ToObject() properly, so I can only use static function for this
-        public static unsafe object ToObject(StackObject* esp, ILRuntime.Runtime.Enviorment.AppDomain appdomain, List<object> mStack)
+        public static unsafe object ToObject(StackObject* esp, ILRuntime.Runtime.Enviorment.AppDomain appdomain, IList<object> mStack)
         {
             switch (esp->ObjectType)
             {
@@ -54,8 +66,8 @@ namespace ILRuntime.Runtime.Stack
                             }
                             else
                                 t = appdomain.GetType(obj.GetType());
-                            var fi = ((CLRType)t).GetField(esp->ValueLow);
-                            return fi.GetValue(obj);
+
+                            return ((CLRType)t).GetFieldValue(esp->ValueLow, obj);
                         }
                     }
                 case ObjectTypes.ArrayReference:
@@ -74,13 +86,32 @@ namespace ILRuntime.Runtime.Stack
                         else
                         {
                             CLR.TypeSystem.CLRType type = (CLR.TypeSystem.CLRType)t;
-                            var fi = type.GetField(esp->ValueLow);
-                            return fi.GetValue(null);
+                            return type.GetFieldValue(esp->ValueLow, null);
                         }
                     }
                 case ObjectTypes.StackObjectReference:
                     {
-                        return ToObject((*(StackObject**)&esp->Value), appdomain, mStack);
+                        return ToObject((ILIntepreter.ResolveReference(esp)), appdomain, mStack);
+                    }
+                case ObjectTypes.ValueTypeObjectReference:
+                    {
+                        StackObject* dst = ILIntepreter.ResolveReference(esp);
+                        IType type = appdomain.GetTypeByIndex(dst->Value);
+                        if (type is ILType)
+                        {
+                            ILType iltype = (ILType)type;
+                            var ins = iltype.Instantiate(false);
+                            for (int i = 0; i < dst->ValueLow; i++)
+                            {
+                                var addr = ILIntepreter.Minus(dst, i + 1);
+                                ins.AssignFromStack(i, addr, appdomain, mStack);
+                            }
+                            return ins;
+                        }
+                        else
+                        {
+                            return ((CLRType)type).ValueTypeBinder.ToObject(dst, mStack);
+                        }
                     }
                 case ObjectTypes.Null:
                     return null;
@@ -89,36 +120,11 @@ namespace ILRuntime.Runtime.Stack
             }
         }
 
-        public unsafe static void Initialized(ref StackObject esp, int idx, Type t, IType fieldType, List<object> mStack)
+        public unsafe static void Initialized(ref StackObject esp, int idx, IType fieldType, IList<object> mStack)
         {
-            if (t.IsPrimitive)
+            if (fieldType.IsPrimitive)
             {
-                if (t == typeof(int) || t == typeof(uint) || t == typeof(short) || t == typeof(ushort) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(char) || t == typeof(bool))
-                {
-                    esp.ObjectType = ObjectTypes.Integer;
-                    esp.Value = 0;
-                    esp.ValueLow = 0;
-                }
-                else if (t == typeof(long) || t == typeof(ulong))
-                {
-                    esp.ObjectType = ObjectTypes.Long;
-                    esp.Value = 0;
-                    esp.ValueLow = 0;
-                }
-                else if (t == typeof(float))
-                {
-                    esp.ObjectType = ObjectTypes.Float;
-                    esp.Value = 0;
-                    esp.ValueLow = 0;
-                }
-                else if (t == typeof(double))
-                {
-                    esp.ObjectType = ObjectTypes.Double;
-                    esp.Value = 0;
-                    esp.ValueLow = 0;
-                }
-                else
-                    throw new NotImplementedException();
+                esp = fieldType.DefaultObject;
             }
             else
             {
@@ -128,49 +134,55 @@ namespace ILRuntime.Runtime.Stack
                     esp.Value = idx;
                     if (fieldType is CLRType)
                     {
-                        mStack[idx] = Activator.CreateInstance(t);
+                        if (fieldType.TypeForCLR.IsEnum)
+                        {
+                            esp.ObjectType = ObjectTypes.Integer;
+                            esp.Value = 0;
+                            esp.ValueLow = 0;
+                            mStack[idx] = null;
+                        }
+                        else
+                            mStack[idx] = ((CLRType)fieldType).CreateDefaultInstance();
                     }
                     else
                     {
-                        mStack[idx] = ((ILType)fieldType).Instantiate();
+                        if (((ILType)fieldType).IsEnum)
+                        {
+                            esp.ObjectType = ObjectTypes.Integer;
+                            esp.Value = 0;
+                            esp.ValueLow = 0;
+                            mStack[idx] = null;
+                        }
+                        else
+                            mStack[idx] = ((ILType)fieldType).Instantiate();
                     }
                 }
                 else
+                {
                     esp = Null;
+                    mStack[idx] = null;
+                }
             }
         }
 
         //IL2CPP can't process esp->Initialized() properly, so I can only use static function for this
-        public unsafe static void Initialized(StackObject* esp, Type t)
+        public unsafe static void Initialized(StackObject* esp, IType type)
         {
-            if (t.IsPrimitive)
+            if (type.IsPrimitive)
             {
-                if (t == typeof(int) || t == typeof(uint) || t == typeof(short) || t == typeof(ushort) || t == typeof(byte) || t == typeof(sbyte) || t == typeof(char) || t == typeof(bool))
+                *esp = type.DefaultObject;
+            }
+            else if (type.IsEnum)
+            {
+                ILType ilType = type as ILType;
+                if (ilType != null)
                 {
-                    esp->ObjectType = ObjectTypes.Integer;
-                    esp->Value = 0;
-                    esp->ValueLow = 0;
-                }
-                else if (t == typeof(long) || t == typeof(ulong))
-                {
-                    esp->ObjectType = ObjectTypes.Long;
-                    esp->Value = 0;
-                    esp->ValueLow = 0;
-                }
-                else if (t == typeof(float))
-                {
-                    esp->ObjectType = ObjectTypes.Float;
-                    esp->Value = 0;
-                    esp->ValueLow = 0;
-                }
-                else if (t == typeof(double))
-                {
-                    esp->ObjectType = ObjectTypes.Double;
-                    esp->Value = 0;
-                    esp->ValueLow = 0;
+                    Initialized(esp, ilType.FieldTypes[0]);
                 }
                 else
-                    throw new NotImplementedException();
+                {
+                    Initialized(esp, ((CLRType)type).OrderedFieldTypes[0]);
+                }
             }
             else
             {
@@ -188,6 +200,8 @@ namespace ILRuntime.Runtime.Stack
         Double,
         StackObjectReference,//Value = pointer, 
         StaticFieldReference,
+        ValueTypeObjectReference,
+        ValueTypeDescriptor,
         Object,
         FieldReference,//Value = objIdx, ValueLow = fieldIdx
         ArrayReference,//Value = objIdx, ValueLow = elemIdx

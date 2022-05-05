@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ILRuntime.Runtime.Stack;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,8 @@ namespace ILRuntime.CLR.TypeSystem
     class ILGenericParameterType : IType
     {
         string name;
-        ILGenericParameterType arrayType;
+        bool isArray, isByRef;
+        ILGenericParameterType arrayType, byrefType, elementType;
         public ILGenericParameterType(string name)
         {
             this.name = name;
@@ -30,6 +32,14 @@ namespace ILRuntime.CLR.TypeSystem
             }
         }
 
+        public bool IsGenericParameter
+        {
+            get
+            {
+                return !isByRef && !isArray;
+            }
+        }
+
         public Type TypeForCLR
         {
             get { return typeof(ILGenericParameterType); }
@@ -45,12 +55,12 @@ namespace ILRuntime.CLR.TypeSystem
             get { return null; }
         }
 
-        public Method.IMethod GetMethod(string name, int paramCount)
+        public Method.IMethod GetMethod(string name, int paramCount, bool declaredOnly = false)
         {
             return null;
         }
 
-        public Method.IMethod GetMethod(string name, List<IType> param, IType[] genericArguments, IType returnType = null)
+        public Method.IMethod GetMethod(string name, List<IType> param, IType[] genericArguments, IType returnType = null, bool declaredOnly = false)
         {
             return null;
         }
@@ -95,12 +105,18 @@ namespace ILRuntime.CLR.TypeSystem
 
         public IType ByRefType
         {
-            get { throw new NotImplementedException(); }
+            get { return byrefType; }
         }
 
         public IType MakeByRefType()
         {
-            return this;
+            if (byrefType == null)
+            {
+                byrefType = new ILGenericParameterType(name + "&");
+                byrefType.isByRef = true;
+                byrefType.elementType = this;
+            }
+            return byrefType;
         }
 
 
@@ -109,10 +125,14 @@ namespace ILRuntime.CLR.TypeSystem
             get { return arrayType; }
         }
 
-        public IType MakeArrayType()
+        public IType MakeArrayType(int rank)
         {
             if (arrayType == null)
+            {
                 arrayType = new ILGenericParameterType(name + "[]");
+                arrayType.isArray = true;
+                arrayType.elementType = this;
+            }
             return arrayType;
         }
 
@@ -120,6 +140,19 @@ namespace ILRuntime.CLR.TypeSystem
         public bool IsValueType
         {
             get { throw new NotImplementedException(); }
+        }
+
+        public bool IsPrimitive
+        {
+            get { return false; }
+        }
+        public bool IsEnum
+        {
+            get { return false; }
+        }
+        public bool IsInterface
+        {
+            get { return false; }
         }
 
         public string Name
@@ -157,6 +190,63 @@ namespace ILRuntime.CLR.TypeSystem
         public Method.IMethod GetVirtualMethod(Method.IMethod method)
         {
             return method;
+        }
+
+        public void GetValueTypeSize(out int fieldCout, out int managedCount)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsArray
+        {
+            get { return isArray; }
+        }
+
+        public bool IsByRef
+        {
+            get
+            {
+                return isByRef;
+            }
+        }
+
+        public IType ElementType
+        {
+            get
+            {
+                return elementType;
+            }
+        }
+
+        public int ArrayRank
+        {
+            get { return 1; }
+        }
+
+        public IType[] Implements
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        public int TotalFieldCount
+        {
+            get
+            {
+                return 0;
+            }
+        }
+
+        public StackObject DefaultObject { get { return default(StackObject); } }
+
+        public int TypeIndex
+        {
+            get
+            {
+                return -1;
+            }
         }
     }
 }

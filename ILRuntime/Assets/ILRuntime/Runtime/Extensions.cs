@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,34 +7,119 @@ using ILRuntime.Runtime.Stack;
 
 namespace ILRuntime.Runtime
 {
-    static class Extensions
+    public static class Extensions
     {
+        public static bool GetJITFlags(this Mono.Cecil.CustomAttribute attribute, Enviorment.AppDomain appdomain, out int flags)
+        {
+            var at = appdomain.GetType(attribute.AttributeType, null, null);
+            flags = ILRuntimeJITFlags.None;
+            if (at == appdomain.JITAttributeType)
+            {
+                if (attribute.HasConstructorArguments)
+                {
+                    flags = (int)attribute.ConstructorArguments[0].Value;
+                }
+                else
+                    flags = ILRuntimeJITFlags.JITOnDemand;
+                return true;
+            }
+            else
+                return false;
+        }
         public static void GetClassName(this Type type, out string clsName, out string realClsName, out bool isByRef, bool simpleClassName = false)
         {
             isByRef = type.IsByRef;
-            bool isArray = type.IsArray;
+            int arrayRank = 1;
+            
             if (isByRef)
+            {
                 type = type.GetElementType();
+            }
+
+            bool isArray = type.IsArray;
+
             if (isArray)
+            {
+                arrayRank = type.GetArrayRank();
                 type = type.GetElementType();
+                if (type.IsArray)
+                {
+                    type.GetClassName(out clsName, out realClsName, out isByRef, simpleClassName);
+
+                    clsName += "_Array";
+                    if (!simpleClassName)
+                        clsName += "_Binding";
+                    if (arrayRank > 1)
+                        clsName += arrayRank;
+                    if (arrayRank <= 1)
+                        realClsName += "[]";
+                    else
+                    {
+                        StringBuilder sb = new StringBuilder();
+                        sb.Append(realClsName);
+                        sb.Append('[');
+                        for (int i = 0; i < arrayRank - 1; i++)
+                        {
+                            sb.Append(',');
+                        }
+                        sb.Append(']');
+                        realClsName = sb.ToString();
+                    }
+
+                    return;
+                }
+            }
             string realNamespace = null;
+            bool isNestedGeneric = false;
             if (type.IsNested)
             {
                 string bClsName, bRealClsName;
                 bool tmp;
-                GetClassName(type.ReflectedType, out bClsName, out bRealClsName, out tmp);
-                clsName = simpleClassName ? "" : bClsName + "_";
+                var rt = type.ReflectedType;
+                if(rt.IsGenericType && rt.IsGenericTypeDefinition)
+                {
+                    if (type.IsGenericType)
+                    {
+                        rt = rt.MakeGenericType(type.GetGenericArguments());
+                        isNestedGeneric = true;
+                    }
+                }
+                GetClassName(rt, out bClsName, out bRealClsName, out tmp);
+                clsName = bClsName + "_";
                 realNamespace = bRealClsName + ".";
             }
             else
             {
                 clsName = simpleClassName ? "" : (!string.IsNullOrEmpty(type.Namespace) ? type.Namespace.Replace(".", "_") + "_" : "");
-                realNamespace = !string.IsNullOrEmpty(type.Namespace) ? type.Namespace + "." : null;
+
+                if (string.IsNullOrEmpty(type.Namespace))
+                {
+                    if (type.IsArray)
+                    {
+                        var elementType = type.GetElementType();
+                        if (elementType.IsNested && elementType.DeclaringType != null)
+                        {
+                            realNamespace = elementType.Namespace + "." + elementType.DeclaringType.Name + ".";
+                        }
+                        else
+                        {
+                            realNamespace = elementType.Namespace + ".";
+                        }
+                    }
+                    else
+                    {
+                        realNamespace = "global::";
+                    }
+                }
+                else
+                {
+                    realNamespace = type.Namespace + ".";
+                }
             }
             clsName = clsName + type.Name.Replace(".", "_").Replace("`", "_").Replace("<", "_").Replace(">", "_");
             bool isGeneric = false;
             string ga = null;
-            if (type.IsGenericType)
+            if (type.IsGenericType && !isNestedGeneric)
             {
                 isGeneric = true;
                 clsName += "_";
@@ -58,10 +143,14 @@ namespace ILRuntime.Runtime
                 }
                 ga += ">";
             }
+            if (isArray)
+            {
+                clsName += "_Array";
+                if (arrayRank > 1)
+                    clsName += arrayRank;
+            }
             if (!simpleClassName)
                 clsName += "_Binding";
-            if (!simpleClassName && isArray)
-                clsName += "_Array";
 
             realClsName = realNamespace;
             if (isGeneric)
@@ -79,7 +168,22 @@ namespace ILRuntime.Runtime
                 realClsName += type.Name;
 
             if (isArray)
-                realClsName += "[]";
+            {
+                if (arrayRank <= 1)
+                    realClsName += "[]";
+                else
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append(realClsName);
+                    sb.Append('[');
+                    for(int i=0;i<arrayRank - 1; i++)
+                    {
+                        sb.Append(',');
+                    }
+                    sb.Append(']');
+                    realClsName = sb.ToString();
+                }
+            }
 
         }
         public static int ToInt32(this object obj)
@@ -104,7 +208,7 @@ namespace ILRuntime.Runtime
                 return (int)(ushort)obj;
             if (obj is sbyte)
                 return (int)(sbyte)obj;
-            throw new InvalidCastException();
+            return Convert.ToInt32(obj);
         }
         public static long ToInt64(this object obj)
         {
@@ -204,6 +308,99 @@ namespace ILRuntime.Runtime
                 return ((ILRuntime.Runtime.Intepreter.ILTypeInstance)value).Type.ReflectionType;
             else
                 return value.GetType();
+        }
+
+        public static bool MatchGenericParameters(this System.Reflection.MethodInfo m, Type[] genericArguments, Type returnType, params Type[] parameters)
+        {
+            var param = m.GetParameters();
+            if (param.Length == parameters.Length)
+            {
+                var args = m.GetGenericArguments();
+                if (args.Length != genericArguments.Length)
+                {
+                    return false;
+                }
+                if (args.MatchGenericParameters(m.ReturnType, returnType, genericArguments))
+                {
+                    for (int i = 0; i < param.Length; i++)
+                    {
+                        if (!args.MatchGenericParameters(param[i].ParameterType, parameters[i], genericArguments))
+                            return false;
+                    }
+
+                    return true;
+                }
+                else
+                    return false;
+            }
+            else
+                return false;
+        }
+
+        public static bool MatchGenericParameters(this Type[] args, Type type, Type q, Type[] genericArguments)
+        {
+            if (type.IsGenericParameter)
+            {
+                for (int i = 0; i < args.Length; i++)
+                {
+                    if (args[i] == type)
+                    {
+                        return q == genericArguments[i];
+                    }
+                }
+                throw new NotSupportedException();
+            }
+            else
+            {
+                if (type.IsArray)
+                {
+                    if (q.IsArray)
+                    {
+                        return MatchGenericParameters(args, type.GetElementType(), q.GetElementType(), genericArguments);
+                    }
+                    else
+                        return false;
+                }
+                else if (type.IsByRef)
+                {
+                    if (q.IsByRef)
+                    {
+                        return MatchGenericParameters(args, type.GetElementType(), q.GetElementType(), genericArguments);
+                    }
+                    else
+                        return false;
+                }
+                else if (type.IsGenericType)
+                {
+                    if (q.IsGenericType)
+                    {
+                        var t1 = type.GetGenericTypeDefinition();
+                        var t2 = type.GetGenericTypeDefinition();
+                        if (t1 == t2)
+                        {
+                            var argA = type.GetGenericArguments();
+                            var argB = q.GetGenericArguments();
+                            if (argA.Length == argB.Length)
+                            {
+                                for (int i = 0; i < argA.Length; i++)
+                                {
+                                    if (!MatchGenericParameters(args, argA[i], argB[i], genericArguments))
+                                        return false;
+                                }
+                                return true;
+                            }
+                            else
+                                return false;
+                        }
+                        else
+                            return false;
+                    }
+                    else
+                        return false;
+                }
+                else
+                    return type == q;
+            }
         }
     }
 }
