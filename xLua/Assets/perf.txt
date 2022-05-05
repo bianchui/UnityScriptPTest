@@ -225,7 +225,7 @@ ffi.cdef[[
 
 function ffi_test3(handle)
 	local t = os.clock()
-	local count = 100000
+	local count = 200000
 
 	local vecs = ffi.C.test_ffi_create(handle, count)
 	for i = 0, count - 1 do
@@ -242,4 +242,14 @@ end
 function ffi_test4(handle)
 	print(handle)
 	print("ff:" .. ffi.C.test_ffi_ptr2(handle))
+end
+
+function Test21(trans)
+	local t = os.clock()
+
+	for i = 1, 200000 do
+	    CS.TransformUtil.setPositionT(trans, 1, 2, 4);
+	end
+
+	return os.clock() - t
 end

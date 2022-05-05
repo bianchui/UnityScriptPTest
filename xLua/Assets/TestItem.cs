@@ -85,7 +85,7 @@ public class TestFFI2 : TestItem {
         FFIClass cls;
         //_objs.Add(cls);
         using (cls = new FFIClass()) {
-            int count = 100000;
+            int count = 200000;
             Vector3* vector3 = cls.getArray(count);
             m_f(cls.handle());
             for (int i = 0; i < count; ++i) {

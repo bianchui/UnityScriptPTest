@@ -47,6 +47,7 @@ public static class ExampleGenConfig {
         typeof(Mathf),
         typeof(System.Collections.Generic.List<int>),
         typeof(Action<string>),
+        typeof(TransformUtil),
         typeof(UnityEngine.Debug)
     };
 
