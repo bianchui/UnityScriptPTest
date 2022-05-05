@@ -43,10 +43,15 @@ public class ILRuntimeDll : DllEnv
         {
             using (System.IO.MemoryStream p = new MemoryStream(pdb))
             {
-                appdomain.LoadAssembly(fs, p, new Mono.Cecil.Pdb.PdbReaderProvider());
+                appdomain.LoadAssembly(fs, p, new ILRuntime.Mono.Cecil.Pdb.PdbReaderProvider());
             }
         }
 
+        appdomain.RegisterCrossBindingAdaptor(new MonoBehaviourAdapter());
+        appdomain.RegisterCrossBindingAdaptor(new CoroutineAdapter());
+        appdomain.RegisterValueTypeBinder(typeof(Vector3), new Vector3Binder());
+        appdomain.RegisterValueTypeBinder(typeof(Quaternion), new QuaternionBinder());
+        appdomain.RegisterValueTypeBinder(typeof(Vector2), new Vector2Binder());
         ILRuntime.Runtime.Generated.CLRBindings.Initialize(appdomain);
 
         onDone();

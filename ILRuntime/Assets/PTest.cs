@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.IO;
 using UnityEngine;
 using ILRuntime.Runtime.Enviorment;
@@ -19,10 +20,12 @@ public class PTest : MonoBehaviour {
 
 #if ILRuntime
     public ILRuntime.Runtime.Enviorment.AppDomain appdomain;
+    private System.IO.MemoryStream fs;
+    private System.IO.MemoryStream p;
+    
 #else
     public System.Reflection.Assembly assembly;
 #endif
-
 
     void Start()
     {
@@ -86,16 +89,17 @@ public class PTest : MonoBehaviour {
         if (!string.IsNullOrEmpty(www.error))
             UnityEngine.Debug.LogError(www.error);
         byte[] pdb = www.bytes;
-        using (System.IO.MemoryStream fs = new MemoryStream(dll))
-        {
-            using (System.IO.MemoryStream p = new MemoryStream(pdb))
-            {
-                appdomain.LoadAssembly(fs, p, new Mono.Cecil.Pdb.PdbReaderProvider());
-            }
-        }
+        fs = new MemoryStream(dll);
+        p = new MemoryStream(pdb);
+        appdomain.LoadAssembly(fs, p, new ILRuntime.Mono.Cecil.Pdb.PdbReaderProvider());
 
+        appdomain.RegisterCrossBindingAdaptor(new MonoBehaviourAdapter());
+        appdomain.RegisterCrossBindingAdaptor(new CoroutineAdapter());
+        appdomain.RegisterValueTypeBinder(typeof(Vector3), new Vector3Binder());
+        appdomain.RegisterValueTypeBinder(typeof(Quaternion), new QuaternionBinder());
+        appdomain.RegisterValueTypeBinder(typeof(Vector2), new Vector2Binder());
         ILRuntime.Runtime.Generated.CLRBindings.Initialize(appdomain);
-
+        
         OnHotFixLoaded();
     }
 #else
@@ -195,6 +199,17 @@ public class PTest : MonoBehaviour {
             }
 
             col += cols[i % 3];
+        }
+    }
+
+    private void OnDestroy() {
+        if (fs != null) {
+            fs.Close();
+            fs = null;
+        }
+        if (p != null) {
+            p.Close();
+            p = null;
         }
     }
 }
