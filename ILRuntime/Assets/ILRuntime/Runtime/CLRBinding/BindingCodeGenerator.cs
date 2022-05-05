@@ -117,7 +117,7 @@ namespace ILRuntime.Runtime.Generated
                     sb.AppendLine("    }");
                     sb.AppendLine("}");
 
-                    sw.Write(Regex.Replace(sb.ToString(), "(?<!\r)\n", "\r\n"));
+                    sw.Write(Regex.Replace(sb.ToString(), "(?<!\r)\n", "\n"));
                     sw.Flush();
                 }
             }
@@ -340,7 +340,7 @@ namespace ILRuntime.Runtime.Generated
                     sb.AppendLine("    }");
                     sb.AppendLine("}");
 
-                    sw.Write(Regex.Replace(sb.ToString(), "(?<!\r)\n", "\r\n"));
+                    sw.Write(Regex.Replace(sb.ToString(), "(?<!\r)\n", "\n"));
                     sw.Flush();
                 }
             }
@@ -373,7 +373,7 @@ namespace ILRuntime.Runtime.Generated
                 sb.AppendLine(@"        }
     }
 }");
-                sw.Write(Regex.Replace(sb.ToString(), "(?<!\r)\n", "\r\n"));
+                sw.Write(Regex.Replace(sb.ToString(), "(?<!\r)\n", "\n"));
             }
 
             var delegateClsNames = GenerateDelegateBinding(delegateTypes, outputPath);
@@ -751,7 +751,7 @@ namespace ILRuntime.Runtime.Generated
                     sb.AppendLine("    }");
                     sb.AppendLine("}");
 
-                    sw.Write(Regex.Replace(sb.ToString(), "(?<!\r)\n", "\r\n"));
+                    sw.Write(Regex.Replace(sb.ToString(), "(?<!\r)\n", "\n"));
                     sw.Flush();
                 }
             }
@@ -859,7 +859,7 @@ namespace ILRuntime.Runtime.Generated
 
                 sb.AppendLine(@"    }
 }");
-                sw.Write(Regex.Replace(sb.ToString(), "(?<!\r)\n", "\r\n"));
+                sw.Write(Regex.Replace(sb.ToString(), "(?<!\r)\n", "\n"));
             }
         }
 
